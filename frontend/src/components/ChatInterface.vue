@@ -135,7 +135,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { User, Delete, Switch, ChatDotRound, Loading, Promotion } from '@element-plus/icons-vue'
 import { 
   ChatService, 
@@ -222,6 +222,7 @@ const handleSendMessage = async () => {
 /**
  * 模拟流式响应（后续替换为真实API调用）
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const simulateStreamResponse = async (userMessage: string) => {
   const responses = [
     '这是一个很有趣的问题。',
@@ -401,9 +402,10 @@ const initialize = async () => {
       await ChatService.connectWebSocket()
     }
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('初始化失败:', error)
-    ElMessage.error('初始化失败，请刷新页面重试')
+    const errorMessage = error instanceof Error ? error.message : '初始化失败，请刷新页面重试'
+    ElMessage.error(errorMessage)
   }
 }
 

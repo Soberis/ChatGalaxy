@@ -324,7 +324,7 @@ async def delete_session(
 
 @router.post(
     "/sessions/{session_id}/messages",
-    response_model=ChatResponse,
+    response_model=ChatResponseModel,
     summary="发送消息",
     description="向指定会话发送消息并获取AI回复"
 )
@@ -333,7 +333,7 @@ async def send_message(
     request: SendMessageRequest,
     current_user: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
     db = Depends(get_db_manager)
-) -> ChatResponse:
+) -> ChatResponseModel:
     """
     发送消息
     
@@ -344,7 +344,7 @@ async def send_message(
         db: 数据库客户端
         
     Returns:
-        ChatResponse: 聊天响应
+        ChatResponseModel: 聊天响应
         
     Raises:
         HTTPException: 发送失败

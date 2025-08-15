@@ -276,7 +276,7 @@ const handleUserMenuCommand = async (command: string) => {
           isGuest.value = false
           currentRole.value = null
           ElMessage.success('已退出登录')
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('退出登录失败:', error)
           // 即使API调用失败，也清除本地状态
           currentUser.value = null
@@ -285,7 +285,7 @@ const handleUserMenuCommand = async (command: string) => {
           ElMessage.success('已退出登录')
         }
         
-      } catch (error) {
+      } catch {
         // 用户取消退出
       }
       break

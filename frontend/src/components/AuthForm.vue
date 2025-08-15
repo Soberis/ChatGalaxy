@@ -224,8 +224,8 @@ import { AuthService, type LoginRequest, type RegisterRequest } from '../service
 
 // 定义事件
 const emit = defineEmits<{
-  login: [user: { id: string; username: string; email: string }]
-  register: [user: { id: string; username: string; email: string }]
+  login: [userData: { user: { id: string; username: string; email: string }; token: string }]
+  register: [userData: { user: { id: string; username: string; email: string }; token: string }]
   guestMode: []
 }>()
 
@@ -367,7 +367,7 @@ const handleLogin = async () => {
     const authResponse = await AuthService.login(loginRequest)
     
     ElMessage.success('登录成功')
-    emit('login', authResponse.user)
+    emit('login', { user: authResponse.user, token: authResponse.access_token })
     
   } catch (error: unknown) {
     console.error('登录失败:', error)
@@ -400,7 +400,7 @@ const handleRegister = async () => {
     const authResponse = await AuthService.register(registerRequest)
     
     ElMessage.success('注册成功')
-    emit('register', authResponse.user)
+    emit('register', { user: authResponse.user, token: authResponse.access_token })
     
   } catch (error: unknown) {
     console.error('注册失败:', error)

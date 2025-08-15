@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     DB_PORT: int = 5432
     DB_NAME: str = "chatgalaxy"
     DB_USER: str = "postgres"
-    DB_PASSWORD: str = ""
+    DB_PASSWORD: str = "root"
     
     # JWT认证配置
     JWT_SECRET_KEY: str

@@ -16,24 +16,17 @@ ChatGalaxy 系统管理路由模块
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, BackgroundTasks
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 from loguru import logger
 import psutil
 import platform
 import sys
-from pathlib import Path
 
-from app.core import get_db_client, get_current_user, get_admin_user, settings
+from app.core import get_db_client, get_admin_user, settings
 from app.services.system_service import SystemService
 from app.services.user_service import UserService
-from app.models.system import (
-    SystemInfo,
-    SystemStats,
-    SystemConfig,
-    UserManagement,
-    SystemLog
-)
+
 
 # 创建路由器
 router = APIRouter(prefix="/system", tags=["系统管理"])
