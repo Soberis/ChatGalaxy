@@ -1,48 +1,10 @@
 [tool.ruff]
-# 开发阶段放宽一些规则
+# 开发阶段简化配置
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
     "F",   # pyflakes
     "I",   # isort
-    "N",   # pep8-naming
-    "UP",  # pyupgrade
-    "B",   # flake8-bugbear
-    "A",   # flake8-builtins
-    "C4",  # flake8-comprehensions
-    "DTZ", # flake8-datetimez
-    "T10", # flake8-debugger
-    "EM",  # flake8-errmsg
-    "EXE", # flake8-executable
-    "FA",  # flake8-future-annotations
-    "ISC", # flake8-implicit-str-concat
-    "ICN", # flake8-import-conventions
-    "G",   # flake8-logging-format
-    "INP", # flake8-no-pep420
-    "PIE", # flake8-pie
-    "T20", # flake8-print
-    "PYI", # flake8-pyi
-    "PT",  # flake8-pytest-style
-    "Q",   # flake8-quotes
-    "RSE", # flake8-raise
-    "RET", # flake8-return
-    "SLF", # flake8-self
-    "SLOT", # flake8-slots
-    "SIM", # flake8-simplify
-    "TID", # flake8-tidy-imports
-    "TCH", # flake8-type-checking
-    "ARG", # flake8-unused-arguments
-    "PTH", # flake8-use-pathlib
-    "ERA", # eradicate
-    "PD",  # pandas-vet
-    "PGH", # pygrep-hooks
-    "PL",  # pylint
-    "TRY", # tryceratops
-    "FLY", # flynt
-    "PERF", # perflint
-    "FURB", # refurb
-    "LOG", # flake8-logging-format
-    "RUF", # ruff-specific rules
 ]
 
 # 开发阶段忽略的规则
@@ -50,101 +12,7 @@ ignore = [
     "F401",  # 未使用的导入 - 开发阶段允许
     "F841",  # 未使用的变量 - 开发阶段允许
     "E501",  # 行太长 - 开发阶段允许
-    "W503",  # 操作符换行 - 开发阶段允许
     "E203",  # 冒号前空格 - 开发阶段允许
-    "B008",  # 函数调用中的函数调用 - 开发阶段允许
-    "B006",  # 可变默认参数 - 开发阶段允许
-    "B011",  # 在assert中使用表达式 - 开发阶段允许
-    "C901",  # 函数过于复杂 - 开发阶段允许
-    "PLR0913", # 函数参数过多 - 开发阶段允许
-    "PLR0912", # 函数过于复杂 - 开发阶段允许
-    "PLR0915", # 函数过于复杂 - 开发阶段允许
-    "PLR0911", # 函数返回过多 - 开发阶段允许
-    "PLR2004", # 魔法数字 - 开发阶段允许
-    "PLR0917", # 函数过于复杂 - 开发阶段允许
-    "PLR0916", # 函数过于复杂 - 开发阶段允许
-    "PLR0918", # 函数过于复杂 - 开发阶段允许
-    "PLR0919", # 函数过于复杂 - 开发阶段允许
-    "PLR0920", # 函数过于复杂 - 开发阶段允许
-    "PLR0921", # 函数过于复杂 - 开发阶段允许
-    "PLR0922", # 函数过于复杂 - 开发阶段允许
-    "PLR0923", # 函数过于复杂 - 开发阶段允许
-    "PLR0924", # 函数过于复杂 - 开发阶段允许
-    "PLR0925", # 函数过于复杂 - 开发阶段允许
-    "PLR0926", # 函数过于复杂 - 开发阶段允许
-    "PLR0927", # 函数过于复杂 - 开发阶段允许
-    "PLR0928", # 函数过于复杂 - 开发阶段允许
-    "PLR0929", # 函数过于复杂 - 开发阶段允许
-    "PLR0930", # 函数过于复杂 - 开发阶段允许
-    "PLR0931", # 函数过于复杂 - 开发阶段允许
-    "PLR0932", # 函数过于复杂 - 开发阶段允许
-    "PLR0933", # 函数过于复杂 - 开发阶段允许
-    "PLR0934", # 函数过于复杂 - 开发阶段允许
-    "PLR0935", # 函数过于复杂 - 开发阶段允许
-    "PLR0936", # 函数过于复杂 - 开发阶段允许
-    "PLR0937", # 函数过于复杂 - 开发阶段允许
-    "PLR0938", # 函数过于复杂 - 开发阶段允许
-    "PLR0939", # 函数过于复杂 - 开发阶段允许
-    "PLR0940", # 函数过于复杂 - 开发阶段允许
-    "PLR0941", # 函数过于复杂 - 开发阶段允许
-    "PLR0942", # 函数过于复杂 - 开发阶段允许
-    "PLR0943", # 函数过于复杂 - 开发阶段允许
-    "PLR0944", # 函数过于复杂 - 开发阶段允许
-    "PLR0945", # 函数过于复杂 - 开发阶段允许
-    "PLR0946", # 函数过于复杂 - 开发阶段允许
-    "PLR0947", # 函数过于复杂 - 开发阶段允许
-    "PLR0948", # 函数过于复杂 - 开发阶段允许
-    "PLR0949", # 函数过于复杂 - 开发阶段允许
-    "PLR0950", # 函数过于复杂 - 开发阶段允许
-    "PLR0951", # 函数过于复杂 - 开发阶段允许
-    "PLR0952", # 函数过于复杂 - 开发阶段允许
-    "PLR0953", # 函数过于复杂 - 开发阶段允许
-    "PLR0954", # 函数过于复杂 - 开发阶段允许
-    "PLR0955", # 函数过于复杂 - 开发阶段允许
-    "PLR0956", # 函数过于复杂 - 开发阶段允许
-    "PLR0957", # 函数过于复杂 - 开发阶段允许
-    "PLR0958", # 函数过于复杂 - 开发阶段允许
-    "PLR0959", # 函数过于复杂 - 开发阶段允许
-    "PLR0960", # 函数过于复杂 - 开发阶段允许
-    "PLR0961", # 函数过于复杂 - 开发阶段允许
-    "PLR0962", # 函数过于复杂 - 开发阶段允许
-    "PLR0963", # 函数过于复杂 - 开发阶段允许
-    "PLR0964", # 函数过于复杂 - 开发阶段允许
-    "PLR0965", # 函数过于复杂 - 开发阶段允许
-    "PLR0966", # 函数过于复杂 - 开发阶段允许
-    "PLR0967", # 函数过于复杂 - 开发阶段允许
-    "PLR0968", # 函数过于复杂 - 开发阶段允许
-    "PLR0969", # 函数过于复杂 - 开发阶段允许
-    "PLR0970", # 函数过于复杂 - 开发阶段允许
-    "PLR0971", # 函数过于复杂 - 开发阶段允许
-    "PLR0972", # 函数过于复杂 - 开发阶段允许
-    "PLR0973", # 函数过于复杂 - 开发阶段允许
-    "PLR0974", # 函数过于复杂 - 开发阶段允许
-    "PLR0975", # 函数过于复杂 - 开发阶段允许
-    "PLR0976", # 函数过于复杂 - 开发阶段允许
-    "PLR0977", # 函数过于复杂 - 开发阶段允许
-    "PLR0978", # 函数过于复杂 - 开发阶段允许
-    "PLR0979", # 函数过于复杂 - 开发阶段允许
-    "PLR0980", # 函数过于复杂 - 开发阶段允许
-    "PLR0981", # 函数过于复杂 - 开发阶段允许
-    "PLR0982", # 函数过于复杂 - 开发阶段允许
-    "PLR0983", # 函数过于复杂 - 开发阶段允许
-    "PLR0984", # 函数过于复杂 - 开发阶段允许
-    "PLR0985", # 函数过于复杂 - 开发阶段允许
-    "PLR0986", # 函数过于复杂 - 开发阶段允许
-    "PLR0987", # 函数过于复杂 - 开发阶段允许
-    "PLR0988", # 函数过于复杂 - 开发阶段允许
-    "PLR0989", # 函数过于复杂 - 开发阶段允许
-    "PLR0990", # 函数过于复杂 - 开发阶段允许
-    "PLR0991", # 函数过于复杂 - 开发阶段允许
-    "PLR0992", # 函数过于复杂 - 开发阶段允许
-    "PLR0993", # 函数过于复杂 - 开发阶段允许
-    "PLR0994", # 函数过于复杂 - 开发阶段允许
-    "PLR0995", # 函数过于复杂 - 开发阶段允许
-    "PLR0996", # 函数过于复杂 - 开发阶段允许
-    "PLR0997", # 函数过于复杂 - 开发阶段允许
-    "PLR0998", # 函数过于复杂 - 开发阶段允许
-    "PLR0999", # 函数过于复杂 - 开发阶段允许
 ]
 
 # 允许的最大行长度
@@ -173,57 +41,21 @@ exclude = [
 # 每个文件的忽略规则
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
-"tests/**/*" = ["F401", "F841", "E501", "PLR0913", "PLR0912", "PLR0915", "PLR0911"]
+"tests/**/*" = ["F401", "F841", "E501"]
 "**/migrations/**/*" = ["F401", "F841", "E501"]
-"**/test_*.py" = ["F401", "F841", "E501", "PLR0913", "PLR0912", "PLR0915", "PLR0911"]
-"**/*_test.py" = ["F401", "F841", "E501", "PLR0913", "PLR0912", "PLR0915", "PLR0911"]
-"**/conftest.py" = ["F401", "F841", "E501", "PLR0913", "PLR0912", "PLR0915", "PLR0911"]
+"**/test_*.py" = ["F401", "F841", "E501"]
+"**/*_test.py" = ["F401", "F841", "E501"]
+"**/conftest.py" = ["F401", "F841", "E501"]
 
 # 格式化配置
 [tool.ruff.format]
-# 格式化配置
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
-preview = true
 
 # 导入排序配置
 [tool.ruff.isort]
 known-first-party = ["app"]
 known-third-party = ["fastapi", "pydantic", "sqlalchemy", "alembic", "httpx", "asyncio"]
 section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
-
-# 类型检查配置
-[tool.ruff.type-checking]
-# 类型检查相关配置
-strict-equality = true
-strict-optional = true
-
-# 文档字符串配置
-[tool.ruff.pydocstyle]
-convention = "google"
-
-# 测试配置
-[tool.ruff.pytest-style]
-fixture-parentheses = false
-parametrize-names-type = "csv"
-parametrize-values-type = "tuple"
-parametrize-values-row-type = "tuple"
-
-# 安全配置
-[tool.ruff.security]
-# 安全相关规则
-no-hardcoded-passwords = true
-no-hardcoded-tmp-directory = true
-
-# 性能配置
-[tool.ruff.perflint]
-# 性能相关规则
-no-copy-dict = true
-no-copy-list = true
-no-copy-set = true
-no-deepcopy = true
-no-dict-copy = true
-no-list-copy = true
-no-set-copy = true
