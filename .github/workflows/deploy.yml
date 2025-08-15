@@ -1,0 +1,225 @@
+# Deployment Pipeline - Vercel + Render
+# 2025年标准的自动化部署工作流
+
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy_frontend:
+        description: 'Deploy Frontend to Vercel'
+        required: true
+        default: 'true'
+        type: boolean
+      deploy_backend:
+        description: 'Deploy Backend to Render'
+        required: true
+        default: 'true'
+        type: boolean
+
+env:
+  NODE_VERSION: '20.19.0'
+  PYTHON_VERSION: '3.11'
+  PNPM_VERSION: '9'
+
+jobs:
+  # 前端部署到Vercel
+  deploy-frontend:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.deploy_frontend == 'true'
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ env.PNPM_VERSION }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+        cache-dependency-path: './frontend/pnpm-lock.yaml'
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: Run tests
+      run: pnpm run test:unit
+      
+    - name: Type check
+      run: pnpm run type-check
+      
+    - name: Build application
+      run: pnpm run build
+      env:
+        VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./frontend
+        vercel-args: '--prod'
+        
+    - name: Comment deployment URL
+      uses: actions/github-script@v7
+      if: github.event_name == 'push'
+      with:
+        script: |
+          const deploymentUrl = process.env.VERCEL_URL || 'https://chatgalaxy.vercel.app';
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `🚀 Frontend deployed to: ${deploymentUrl}`
+          });
+          
+  # 后端部署到Render
+  deploy-backend:
+    name: Deploy Backend to Render
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.inputs.deploy_backend == 'true'
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: './backend/requirements.txt'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run tests
+      run: |
+        pip install pytest pytest-asyncio httpx
+        pytest tests/ -v
+      env:
+        ENVIRONMENT: test
+        
+    - name: Security scan
+      run: |
+        pip install bandit safety
+        bandit -r app
+        safety check
+        
+    - name: Deploy to Render
+      uses: johnbeynon/render-deploy-action@v0.0.8
+      with:
+        service-id: ${{ secrets.RENDER_SERVICE_ID }}
+        api-key: ${{ secrets.RENDER_API_KEY }}
+        wait-for-success: true
+        
+    - name: Health check
+      run: |
+        sleep 30
+        curl -f ${{ secrets.RENDER_SERVICE_URL }}/health || exit 1
+        
+    - name: Comment deployment status
+      uses: actions/github-script@v7
+      if: github.event_name == 'push'
+      with:
+        script: |
+          const serviceUrl = process.env.RENDER_SERVICE_URL || 'Backend deployment completed';
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `🚀 Backend deployed to Render: ${serviceUrl}`
+          });
+          
+  # 部署后集成测试
+  integration-test:
+    name: Post-Deployment Integration Tests
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend]
+    if: always() && (needs.deploy-frontend.result == 'success' || needs.deploy-backend.result == 'success')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Install test dependencies
+      run: |
+        npm install -g @playwright/test
+        npx playwright install
+        
+    - name: Run E2E tests
+      run: |
+        npx playwright test
+      env:
+        FRONTEND_URL: ${{ secrets.VERCEL_URL }}
+        BACKEND_URL: ${{ secrets.RENDER_SERVICE_URL }}
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: e2e-test-results
+        path: |
+          test-results/
+          playwright-report/
+          
+  # 部署通知
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-frontend, deploy-backend, integration-test]
+    if: always()
+    
+    steps:
+    - name: Deployment Summary
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const frontendStatus = '${{ needs.deploy-frontend.result }}';
+          const backendStatus = '${{ needs.deploy-backend.result }}';
+          const testStatus = '${{ needs.integration-test.result }}';
+          
+          let summary = '## 🚀 Deployment Summary\n\n';
+          summary += `- Frontend (Vercel): ${frontendStatus === 'success' ? '✅' : '❌'} ${frontendStatus}\n`;
+          summary += `- Backend (Render): ${backendStatus === 'success' ? '✅' : '❌'} ${backendStatus}\n`;
+          summary += `- Integration Tests: ${testStatus === 'success' ? '✅' : '❌'} ${testStatus}\n\n`;
+          
+          if (frontendStatus === 'success' && backendStatus === 'success') {
+            summary += '🎉 **ChatGalaxy successfully deployed to production!**\n\n';
+            summary += `- Frontend: https://chatgalaxy.vercel.app\n`;
+            summary += `- Backend API: ${process.env.RENDER_SERVICE_URL}\n`;
+          } else {
+            summary += '⚠️ **Deployment completed with issues. Please check the logs.**\n';
+          }
+          
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: summary
+          });

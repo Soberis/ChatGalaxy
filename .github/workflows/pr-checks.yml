@@ -1,0 +1,433 @@
+# Pull Request Automation & Branch Protection
+# 2025年标准的PR自动化检查和分支保护工作流
+
+name: PR Checks & Branch Protection
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  issue_comment:
+    types: [created]
+
+env:
+  NODE_VERSION: '20.19.0'
+  PYTHON_VERSION: '3.11'
+  PNPM_VERSION: '9'
+
+jobs:
+  # PR信息验证
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 验证PR标题格式
+      uses: amannn/action-semantic-pull-request@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        types: |
+          feat
+          fix
+          docs
+          style
+          refactor
+          perf
+          test
+          build
+          ci
+          chore
+          revert
+        scopes: |
+          frontend
+          backend
+          api
+          ui
+          auth
+          chat
+          deploy
+          security
+          deps
+        requireScope: false
+        disallowScopes: |
+          release
+        subjectPattern: ^(?![A-Z]).+$
+        subjectPatternError: |
+          The subject "{subject}" found in the pull request title "{title}"
+          didn't match the configured pattern. Please ensure that the subject
+          doesn't start with an uppercase character.
+          
+    - name: 检查PR描述
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: pullRequest } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const body = pullRequest.body || '';
+          const minLength = 50;
+          
+          if (body.length < minLength) {
+            core.setFailed(`PR description is too short (${body.length} chars). Please provide at least ${minLength} characters describing your changes.`);
+          }
+          
+          // 检查是否包含必要的信息
+          const requiredSections = ['## Changes', '## Testing'];
+          const missingSections = requiredSections.filter(section => !body.includes(section));
+          
+          if (missingSections.length > 0) {
+            core.warning(`PR description is missing recommended sections: ${missingSections.join(', ')}`);
+          }
+          
+    - name: 检查文件变更范围
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const maxFiles = 50;
+          const maxAdditions = 1000;
+          
+          if (files.length > maxFiles) {
+            core.warning(`This PR modifies ${files.length} files, which is quite large. Consider breaking it into smaller PRs.`);
+          }
+          
+          const totalAdditions = files.reduce((sum, file) => sum + file.additions, 0);
+          if (totalAdditions > maxAdditions) {
+            core.warning(`This PR adds ${totalAdditions} lines, which is quite large. Consider breaking it into smaller PRs.`);
+          }
+          
+          // 检查是否同时修改前端和后端
+          const frontendFiles = files.filter(f => f.filename.startsWith('frontend/'));
+          const backendFiles = files.filter(f => f.filename.startsWith('backend/'));
+          
+          if (frontendFiles.length > 0 && backendFiles.length > 0) {
+            core.warning('This PR modifies both frontend and backend code. Consider splitting into separate PRs for easier review.');
+          }
+          
+  # 快速检查
+  quick-checks:
+    name: Quick Checks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 检查敏感文件变更
+      run: |
+        # 检查是否修改了敏感配置文件
+        SENSITIVE_FILES="
+        package.json
+        requirements.txt
+        Dockerfile
+        docker-compose.yml
+        vercel.json
+        render.yaml
+        .github/workflows/
+        "
+        
+        CHANGED_SENSITIVE_FILES=""
+        for file in $SENSITIVE_FILES; do
+          if git diff --name-only origin/main...HEAD | grep -q "^$file"; then
+            CHANGED_SENSITIVE_FILES="$CHANGED_SENSITIVE_FILES\n- $file"
+          fi
+        done
+        
+        if [ -n "$CHANGED_SENSITIVE_FILES" ]; then
+          echo "⚠️ Sensitive files modified:$CHANGED_SENSITIVE_FILES" >> $GITHUB_STEP_SUMMARY
+          echo "Please ensure these changes are reviewed carefully." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 检查TODO和FIXME
+      run: |
+        # 查找新增的TODO和FIXME
+        TODO_COUNT=$(git diff origin/main...HEAD | grep -c "^+.*\(TODO\|FIXME\|XXX\|HACK\)" || true)
+        
+        if [ $TODO_COUNT -gt 0 ]; then
+          echo "⚠️ Found $TODO_COUNT new TODO/FIXME comments" >> $GITHUB_STEP_SUMMARY
+          echo "Consider addressing these before merging:" >> $GITHUB_STEP_SUMMARY
+          git diff origin/main...HEAD | grep "^+.*\(TODO\|FIXME\|XXX\|HACK\)" | head -10 >> $GITHUB_STEP_SUMMARY || true
+        fi
+        
+    - name: 检查调试代码
+      run: |
+        # 查找可能的调试代码
+        DEBUG_PATTERNS="console\.log\|debugger\|print(\|pdb\.set_trace\|breakpoint()"
+        DEBUG_COUNT=$(git diff origin/main...HEAD | grep -c "^+.*\($DEBUG_PATTERNS\)" || true)
+        
+        if [ $DEBUG_COUNT -gt 0 ]; then
+          echo "⚠️ Found $DEBUG_COUNT potential debug statements" >> $GITHUB_STEP_SUMMARY
+          echo "Please remove debug code before merging:" >> $GITHUB_STEP_SUMMARY
+          git diff origin/main...HEAD | grep "^+.*\($DEBUG_PATTERNS\)" | head -5 >> $GITHUB_STEP_SUMMARY || true
+        fi
+        
+  # 自动化PR标签
+  auto-labeling:
+    name: Auto Labeling
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 自动添加标签
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: files } = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const labels = [];
+          
+          // 根据文件变更添加标签
+          const frontendFiles = files.filter(f => f.filename.startsWith('frontend/'));
+          const backendFiles = files.filter(f => f.filename.startsWith('backend/'));
+          const docsFiles = files.filter(f => f.filename.match(/\.(md|txt|rst)$/i));
+          const testFiles = files.filter(f => f.filename.includes('test') || f.filename.includes('spec'));
+          const configFiles = files.filter(f => f.filename.match(/\.(json|yml|yaml|toml|ini|conf)$/));
+          
+          if (frontendFiles.length > 0) labels.push('frontend');
+          if (backendFiles.length > 0) labels.push('backend');
+          if (docsFiles.length > 0) labels.push('documentation');
+          if (testFiles.length > 0) labels.push('tests');
+          if (configFiles.length > 0) labels.push('configuration');
+          
+          // 根据变更大小添加标签
+          const totalChanges = files.reduce((sum, file) => sum + file.additions + file.deletions, 0);
+          if (totalChanges < 50) {
+            labels.push('size/small');
+          } else if (totalChanges < 200) {
+            labels.push('size/medium');
+          } else {
+            labels.push('size/large');
+          }
+          
+          // 根据PR标题添加标签
+          const title = context.payload.pull_request.title.toLowerCase();
+          if (title.includes('feat')) labels.push('enhancement');
+          if (title.includes('fix')) labels.push('bug');
+          if (title.includes('security')) labels.push('security');
+          if (title.includes('perf')) labels.push('performance');
+          if (title.includes('refactor')) labels.push('refactoring');
+          
+          // 添加标签
+          if (labels.length > 0) {
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
+          }
+          
+  # PR评论命令处理
+  pr-commands:
+    name: PR Commands
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    
+    steps:
+    - name: 处理PR命令
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const comment = context.payload.comment.body.trim();
+          const commenter = context.payload.comment.user.login;
+          
+          // 检查权限
+          const { data: collaborator } = await github.rest.repos.getCollaboratorPermissionLevel({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            username: commenter
+          });
+          
+          const hasPermission = ['admin', 'write'].includes(collaborator.permission);
+          
+          if (!hasPermission) {
+            console.log(`User ${commenter} does not have permission to run commands`);
+            return;
+          }
+          
+          // 处理不同命令
+          if (comment === '/rerun-ci') {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '🔄 Rerunning CI checks...'
+            });
+            
+            // 触发重新运行工作流
+            const { data: runs } = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head_sha: context.payload.issue.pull_request.head.sha
+            });
+            
+            for (const run of runs.workflow_runs.slice(0, 3)) {
+              if (run.status === 'completed' && run.conclusion === 'failure') {
+                await github.rest.actions.reRunWorkflow({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  run_id: run.id
+                });
+              }
+            }
+          }
+          
+          if (comment === '/ready-for-review') {
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              draft: false
+            });
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ PR marked as ready for review!'
+            });
+          }
+          
+          if (comment.startsWith('/assign ')) {
+            const assignees = comment.replace('/assign ', '').split(' ').map(u => u.replace('@', ''));
+            
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: assignees
+            });
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `👥 Assigned to: ${assignees.map(u => '@' + u).join(', ')}`
+            });
+          }
+          
+  # 分支保护状态检查
+  branch-protection-status:
+    name: Branch Protection Status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: 检查分支保护状态
+      uses: actions/github-script@v7
+      with:
+        script: |
+          try {
+            const { data: protection } = await github.rest.repos.getBranchProtection({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: 'main'
+            });
+            
+            let summary = '## 🛡️ Branch Protection Status\n\n';
+            summary += `- **Required Status Checks**: ${protection.required_status_checks ? '✅ Enabled' : '❌ Disabled'}\n`;
+            summary += `- **Enforce Admins**: ${protection.enforce_admins.enabled ? '✅ Enabled' : '❌ Disabled'}\n`;
+            summary += `- **Required Reviews**: ${protection.required_pull_request_reviews ? '✅ Enabled' : '❌ Disabled'}\n`;
+            summary += `- **Dismiss Stale Reviews**: ${protection.required_pull_request_reviews?.dismiss_stale_reviews ? '✅ Enabled' : '❌ Disabled'}\n`;
+            summary += `- **Require Code Owner Reviews**: ${protection.required_pull_request_reviews?.require_code_owner_reviews ? '✅ Enabled' : '❌ Disabled'}\n`;
+            summary += `- **Restrict Pushes**: ${protection.restrictions ? '✅ Enabled' : '❌ Disabled'}\n`;
+            
+            console.log(summary);
+            
+          } catch (error) {
+            console.log('⚠️ Branch protection not configured for main branch');
+            console.log('Consider enabling branch protection rules for better security.');
+          }
+          
+  # PR就绪检查
+  pr-ready-check:
+    name: PR Ready Check
+    runs-on: ubuntu-latest
+    needs: [pr-validation, quick-checks]
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
+    
+    steps:
+    - name: 检查PR就绪状态
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: pullRequest } = await github.rest.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const { data: reviews } = await github.rest.pulls.listReviews({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.issue.number,
+          });
+          
+          const { data: checks } = await github.rest.checks.listForRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: pullRequest.head.sha,
+          });
+          
+          let readyToMerge = true;
+          let issues = [];
+          
+          // 检查CI状态
+          const failedChecks = checks.check_runs.filter(check => check.conclusion === 'failure');
+          if (failedChecks.length > 0) {
+            readyToMerge = false;
+            issues.push(`❌ ${failedChecks.length} CI checks failed`);
+          }
+          
+          // 检查审核状态
+          const approvedReviews = reviews.filter(review => review.state === 'APPROVED');
+          const requestedChanges = reviews.filter(review => review.state === 'CHANGES_REQUESTED');
+          
+          if (approvedReviews.length === 0) {
+            issues.push('⏳ No approving reviews yet');
+          }
+          
+          if (requestedChanges.length > 0) {
+            readyToMerge = false;
+            issues.push('🔄 Changes requested by reviewers');
+          }
+          
+          // 生成状态报告
+          let statusComment = '## 🚦 PR Status Report\n\n';
+          
+          if (readyToMerge && approvedReviews.length > 0) {
+            statusComment += '🎉 **This PR is ready to merge!**\n\n';
+            statusComment += '✅ All checks passed\n';
+            statusComment += `✅ Approved by: ${approvedReviews.map(r => '@' + r.user.login).join(', ')}\n`;
+          } else {
+            statusComment += '⏳ **This PR is not ready to merge yet**\n\n';
+            statusComment += 'Issues to resolve:\n';
+            issues.forEach(issue => {
+              statusComment += `- ${issue}\n`;
+            });
+          }
+          
+          console.log(statusComment);

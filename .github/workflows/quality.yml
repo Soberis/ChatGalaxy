@@ -1,0 +1,301 @@
+# Code Quality & Coverage Pipeline
+# 2025年标准的代码质量检查和覆盖率报告工作流
+
+name: Code Quality & Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 每天凌晨2点运行质量检查
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.19.0'
+  PYTHON_VERSION: '3.11'
+  PNPM_VERSION: '9'
+
+jobs:
+  # 前端代码质量检查
+  frontend-quality:
+    name: Frontend Code Quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取完整历史用于SonarCloud分析
+        
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ env.PNPM_VERSION }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+        cache-dependency-path: './frontend/pnpm-lock.yaml'
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: ESLint检查
+      run: |
+        pnpm run lint --format=json --output-file=eslint-report.json || true
+        pnpm run lint
+        
+    - name: Prettier格式检查
+      run: pnpm run format:check
+      
+    - name: TypeScript类型检查
+      run: pnpm run type-check
+      
+    - name: 运行单元测试并生成覆盖率
+      run: |
+        pnpm run test:unit --coverage --reporter=json --reporter=lcov
+        
+    - name: 上传覆盖率到Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./frontend/coverage
+        flags: frontend
+        name: frontend-coverage
+        fail_ci_if_error: false
+        
+    - name: SonarCloud代码分析
+      uses: SonarSource/sonarcloud-github-action@master
+      if: github.event_name != 'schedule'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        projectBaseDir: ./frontend
+        args: >
+          -Dsonar.projectKey=chatgalaxy-frontend
+          -Dsonar.organization=chatgalaxy
+          -Dsonar.sources=src
+          -Dsonar.tests=src
+          -Dsonar.test.inclusions=**/*.test.ts,**/*.spec.ts
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+          -Dsonar.eslint.reportPaths=eslint-report.json
+          
+    - name: Bundle分析
+      run: |
+        pnpm run build
+        npx vite-bundle-analyzer dist --json > bundle-analysis.json
+        
+    - name: 性能预算检查
+      run: |
+        # 检查bundle大小是否超过限制
+        BUNDLE_SIZE=$(du -sb dist | cut -f1)
+        MAX_SIZE=5242880  # 5MB
+        if [ $BUNDLE_SIZE -gt $MAX_SIZE ]; then
+          echo "❌ Bundle size ($BUNDLE_SIZE bytes) exceeds limit ($MAX_SIZE bytes)"
+          exit 1
+        else
+          echo "✅ Bundle size ($BUNDLE_SIZE bytes) within limit"
+        fi
+        
+    - name: 上传构建产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-quality-reports
+        path: |
+          frontend/coverage/
+          frontend/eslint-report.json
+          frontend/bundle-analysis.json
+          frontend/dist/
+          
+  # 后端代码质量检查
+  backend-quality:
+    name: Backend Code Quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: './backend/requirements.txt'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install coverage pytest-cov pytest-html
+        
+    - name: Ruff代码检查
+      run: |
+        pip install ruff
+        ruff check . --format=json --output-file=ruff-report.json || true
+        ruff check .
+        
+    - name: Ruff代码格式检查
+      run: ruff format --check .
+      
+    - name: MyPy类型检查
+      run: |
+        pip install mypy
+        mypy app --json-report mypy-report
+        
+    - name: Bandit安全扫描
+      run: |
+        pip install bandit[toml]
+        bandit -r app -f json -o bandit-report.json || true
+        bandit -r app
+        
+    - name: 运行测试并生成覆盖率
+      run: |
+        coverage run -m pytest tests/ -v --html=pytest-report.html --self-contained-html
+        coverage xml
+        coverage html
+        coverage report
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+        ENVIRONMENT: test
+        
+    - name: 上传覆盖率到Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: ./backend
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+        
+    - name: SonarCloud代码分析
+      uses: SonarSource/sonarcloud-github-action@master
+      if: github.event_name != 'schedule'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        projectBaseDir: ./backend
+        args: >
+          -Dsonar.projectKey=chatgalaxy-backend
+          -Dsonar.organization=chatgalaxy
+          -Dsonar.sources=app
+          -Dsonar.tests=tests
+          -Dsonar.python.coverage.reportPaths=coverage.xml
+          -Dsonar.python.bandit.reportPaths=bandit-report.json
+          
+    - name: 上传测试报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-quality-reports
+        path: |
+          backend/htmlcov/
+          backend/coverage.xml
+          backend/pytest-report.html
+          backend/ruff-report.json
+          backend/bandit-report.json
+          backend/mypy-report/
+          
+  # 代码质量门禁
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [frontend-quality, backend-quality]
+    if: always()
+    
+    steps:
+    - name: 下载质量报告
+      uses: actions/download-artifact@v4
+      with:
+        path: ./reports
+        
+    - name: 质量门禁检查
+      run: |
+        echo "## 📊 Code Quality Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # 检查前端质量
+        if [ "${{ needs.frontend-quality.result }}" = "success" ]; then
+          echo "✅ Frontend Quality: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Frontend Quality: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # 检查后端质量
+        if [ "${{ needs.backend-quality.result }}" = "success" ]; then
+          echo "✅ Backend Quality: PASSED" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Backend Quality: FAILED" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📈 Coverage Reports" >> $GITHUB_STEP_SUMMARY
+        echo "- [Frontend Coverage](https://codecov.io/gh/${{ github.repository }}/tree/${{ github.sha }}/frontend)" >> $GITHUB_STEP_SUMMARY
+        echo "- [Backend Coverage](https://codecov.io/gh/${{ github.repository }}/tree/${{ github.sha }}/backend)" >> $GITHUB_STEP_SUMMARY
+        
+        # 如果任一检查失败，整个工作流失败
+        if [ "${{ needs.frontend-quality.result }}" != "success" ] || [ "${{ needs.backend-quality.result }}" != "success" ]; then
+          echo "❌ Quality gate failed. Please fix the issues before merging."
+          exit 1
+        fi
+        
+        echo "✅ All quality checks passed!"
+        
+    - name: PR评论质量报告
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const frontendStatus = '${{ needs.frontend-quality.result }}';
+          const backendStatus = '${{ needs.backend-quality.result }}';
+          
+          let comment = '## 📊 Code Quality Report\n\n';
+          comment += `| Component | Status | Result |\n`;
+          comment += `|-----------|--------|--------|\n`;
+          comment += `| Frontend | ${frontendStatus === 'success' ? '✅' : '❌'} | ${frontendStatus} |\n`;
+          comment += `| Backend | ${backendStatus === 'success' ? '✅' : '❌'} | ${backendStatus} |\n\n`;
+          
+          comment += '### 📈 Coverage Reports\n';
+          comment += `- [Frontend Coverage](https://codecov.io/gh/${context.repo.owner}/${context.repo.repo}/tree/${context.sha}/frontend)\n`;
+          comment += `- [Backend Coverage](https://codecov.io/gh/${context.repo.owner}/${context.repo.repo}/tree/${context.sha}/backend)\n\n`;
+          
+          if (frontendStatus === 'success' && backendStatus === 'success') {
+            comment += '🎉 **All quality checks passed! Ready for review.**';
+          } else {
+            comment += '⚠️ **Quality checks failed. Please fix the issues before merging.**';
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

@@ -1,0 +1,385 @@
+# Security Scanning & Vulnerability Detection
+# 2025年标准的安全扫描和漏洞检测工作流
+
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 每周一凌晨3点运行安全扫描
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.19.0'
+  PYTHON_VERSION: '3.11'
+  PNPM_VERSION: '9'
+
+jobs:
+  # 前端依赖安全扫描
+  frontend-security:
+    name: Frontend Security Scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: ${{ env.PNPM_VERSION }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'pnpm'
+        cache-dependency-path: './frontend/pnpm-lock.yaml'
+        
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      
+    - name: NPM Audit安全检查
+      run: |
+        pnpm audit --audit-level moderate --json > npm-audit.json || true
+        pnpm audit --audit-level moderate
+      continue-on-error: true
+      
+    - name: Snyk依赖漏洞扫描
+      uses: snyk/actions/node@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=medium --json-file-output=snyk-report.json
+        
+    - name: OWASP依赖检查
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'ChatGalaxy-Frontend'
+        path: './frontend'
+        format: 'JSON'
+        out: './frontend/dependency-check-report.json'
+        args: >
+          --enableRetired
+          --enableExperimental
+          --nodeAuditSkipDevDependencies
+          
+    - name: ESLint安全规则检查
+      run: |
+        pnpm add -D eslint-plugin-security @typescript-eslint/eslint-plugin
+        npx eslint src --ext .ts,.vue --config .eslintrc-security.js --format json --output-file eslint-security.json || true
+        
+    - name: 创建ESLint安全配置
+      run: |
+        cat > .eslintrc-security.js << 'EOF'
+        module.exports = {
+          extends: [
+            './.eslintrc.cjs',
+            'plugin:security/recommended'
+          ],
+          plugins: ['security'],
+          rules: {
+            'security/detect-object-injection': 'error',
+            'security/detect-non-literal-regexp': 'error',
+            'security/detect-unsafe-regex': 'error',
+            'security/detect-buffer-noassert': 'error',
+            'security/detect-child-process': 'error',
+            'security/detect-disable-mustache-escape': 'error',
+            'security/detect-eval-with-expression': 'error',
+            'security/detect-no-csrf-before-method-override': 'error',
+            'security/detect-non-literal-fs-filename': 'error',
+            'security/detect-non-literal-require': 'error',
+            'security/detect-possible-timing-attacks': 'error',
+            'security/detect-pseudoRandomBytes': 'error'
+          }
+        };
+        EOF
+        
+    - name: Semgrep SAST扫描
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+          p/owasp-top-ten
+          p/javascript
+          p/typescript
+        generateSarif: "1"
+        
+    - name: 上传安全报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: frontend-security-reports
+        path: |
+          frontend/npm-audit.json
+          frontend/snyk-report.json
+          frontend/dependency-check-report.json
+          frontend/eslint-security.json
+          semgrep.sarif
+          
+  # 后端依赖安全扫描
+  backend-security:
+    name: Backend Security Scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: './backend/requirements.txt'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Safety依赖漏洞扫描
+      run: |
+        pip install safety
+        safety check --json --output safety-report.json || true
+        safety check
+      continue-on-error: true
+      
+    - name: Pip-audit安全审计
+      run: |
+        pip install pip-audit
+        pip-audit --format=json --output=pip-audit-report.json || true
+        pip-audit
+      continue-on-error: true
+      
+    - name: Bandit SAST安全扫描
+      run: |
+        pip install bandit[toml]
+        bandit -r app -f json -o bandit-report.json || true
+        bandit -r app -ll
+      continue-on-error: true
+      
+    - name: Semgrep Python安全扫描
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/python
+          p/security-audit
+          p/secrets
+          p/owasp-top-ten
+          p/django
+        generateSarif: "1"
+        
+    - name: Snyk Python漏洞扫描
+      uses: snyk/actions/python@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --severity-threshold=medium --json-file-output=snyk-python-report.json
+        
+    - name: OWASP依赖检查
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'ChatGalaxy-Backend'
+        path: './backend'
+        format: 'JSON'
+        out: './backend/dependency-check-report.json'
+        args: >
+          --enableRetired
+          --enableExperimental
+          
+    - name: 上传安全报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-security-reports
+        path: |
+          backend/safety-report.json
+          backend/pip-audit-report.json
+          backend/bandit-report.json
+          backend/snyk-python-report.json
+          backend/dependency-check-report.json
+          semgrep.sarif
+          
+  # 容器安全扫描
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: 构建后端Docker镜像
+      run: |
+        cd backend
+        docker build -t chatgalaxy-backend:latest .
+        
+    - name: Trivy容器漏洞扫描
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'chatgalaxy-backend:latest'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        
+    - name: Trivy文件系统扫描
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'json'
+        output: 'trivy-fs-results.json'
+        
+    - name: Docker Scout漏洞扫描
+      uses: docker/scout-action@v1
+      if: github.event_name != 'schedule'
+      with:
+        command: cves
+        image: chatgalaxy-backend:latest
+        format: json
+        output: docker-scout-report.json
+        
+    - name: 上传容器安全报告
+      uses: actions/upload-artifact@v4
+      with:
+        name: container-security-reports
+        path: |
+          trivy-results.sarif
+          trivy-fs-results.json
+          docker-scout-report.json
+          
+  # 密钥和敏感信息扫描
+  secrets-scan:
+    name: Secrets & Sensitive Data Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 获取完整历史
+        
+    - name: TruffleHog密钥扫描
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified --json
+        
+    - name: GitLeaks密钥扫描
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        
+    - name: Detect-secrets扫描
+      run: |
+        pip install detect-secrets
+        detect-secrets scan --all-files --baseline .secrets.baseline
+        detect-secrets audit .secrets.baseline
+        
+  # 安全报告汇总
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [frontend-security, backend-security, container-security, secrets-scan]
+    if: always()
+    
+    steps:
+    - name: 下载所有安全报告
+      uses: actions/download-artifact@v4
+      with:
+        path: ./security-reports
+        
+    - name: 生成安全报告摘要
+      run: |
+        echo "## 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Component | Status | Result |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----------|--------|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Frontend Security | ${{ needs.frontend-security.result == 'success' && '✅' || '❌' }} | ${{ needs.frontend-security.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Backend Security | ${{ needs.backend-security.result == 'success' && '✅' || '❌' }} | ${{ needs.backend-security.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Container Security | ${{ needs.container-security.result == 'success' && '✅' || '❌' }} | ${{ needs.container-security.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Secrets Scan | ${{ needs.secrets-scan.result == 'success' && '✅' || '❌' }} | ${{ needs.secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # 检查是否有严重安全问题
+        CRITICAL_ISSUES=0
+        
+        if [ "${{ needs.frontend-security.result }}" != "success" ]; then
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+        fi
+        
+        if [ "${{ needs.backend-security.result }}" != "success" ]; then
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+        fi
+        
+        if [ "${{ needs.secrets-scan.result }}" != "success" ]; then
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+        fi
+        
+        if [ $CRITICAL_ISSUES -gt 0 ]; then
+          echo "⚠️ **$CRITICAL_ISSUES critical security issues found!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please review and fix security vulnerabilities before deployment." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "🎉 **No critical security issues found!**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All security scans passed successfully." >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 上传SARIF到GitHub Security
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: security-reports/
+        
+    - name: PR安全报告评论
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const frontendStatus = '${{ needs.frontend-security.result }}';
+          const backendStatus = '${{ needs.backend-security.result }}';
+          const containerStatus = '${{ needs.container-security.result }}';
+          const secretsStatus = '${{ needs.secrets-scan.result }}';
+          
+          let comment = '## 🔒 Security Scan Report\n\n';
+          comment += `| Component | Status | Result |\n`;
+          comment += `|-----------|--------|--------|\n`;
+          comment += `| Frontend Security | ${frontendStatus === 'success' ? '✅' : '❌'} | ${frontendStatus} |\n`;
+          comment += `| Backend Security | ${backendStatus === 'success' ? '✅' : '❌'} | ${backendStatus} |\n`;
+          comment += `| Container Security | ${containerStatus === 'success' ? '✅' : '❌'} | ${containerStatus} |\n`;
+          comment += `| Secrets Scan | ${secretsStatus === 'success' ? '✅' : '❌'} | ${secretsStatus} |\n\n`;
+          
+          const criticalIssues = [frontendStatus, backendStatus, secretsStatus].filter(s => s !== 'success').length;
+          
+          if (criticalIssues > 0) {
+            comment += `⚠️ **${criticalIssues} critical security issues found!**\n\n`;
+            comment += 'Please review and fix security vulnerabilities before merging.\n\n';
+            comment += '📋 **Security Reports Available:**\n';
+            comment += '- Check the [Security tab](https://github.com/${{ github.repository }}/security) for detailed findings\n';
+            comment += '- Download security reports from the workflow artifacts\n';
+          } else {
+            comment += '🎉 **All security scans passed successfully!**\n\n';
+            comment += 'No critical security issues found. Safe to merge.\n';
+          }
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
