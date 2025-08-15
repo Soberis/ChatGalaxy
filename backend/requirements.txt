@@ -1,0 +1,50 @@
+# ChatGalaxy 后端项目依赖
+# 基于 Python 3.11+ 和 FastAPI 0.104
+
+# 核心框架
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# 数据库和ORM
+supabase==2.3.0
+sqlalchemy==2.0.23
+alembic==1.13.1
+
+# 认证和安全
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+python-multipart==0.0.6
+
+# WebSocket支持
+websockets==12.0
+
+# HTTP客户端和工具
+httpx>=0.24.0,<0.25.0
+requests==2.31.0
+aiofiles==23.2.1
+
+# 环境变量管理
+python-dotenv==1.0.0
+
+# 日志和监控
+loguru==0.7.2
+
+# AI服务集成(阿里通义千问)
+dashscope==1.14.1
+openai==1.6.1  # 兼容OpenAI格式的API调用
+
+# 数据验证和序列化
+email-validator==2.1.0
+
+# 开发工具
+pytest==7.4.3
+pytest-asyncio==0.21.1
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# CORS支持
+fastapi-cors==0.0.6

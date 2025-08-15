@@ -1,0 +1,18 @@
+{
+  "name": "chatgalaxy",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend && npm run build",
+    "dev": "cd frontend && npm run dev",
+    "install": "cd frontend && npm install",
+    "type-check": "cd frontend && npm run type-check",
+    "lint": "cd frontend && npm run lint"
+  },
+  "workspaces": [
+    "frontend"
+  ],
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
