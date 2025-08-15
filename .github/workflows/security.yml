@@ -118,7 +118,7 @@ jobs:
   security-summary:
     name: Security Summary
     runs-on: ubuntu-latest
-    needs: [frontend-security, backend-security, container-security, secrets-scan]
+    needs: [security-scan, container-security, secrets-detection]
     if: always()
     
     steps:
@@ -133,24 +133,23 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "| Component | Status | Result |" >> $GITHUB_STEP_SUMMARY
         echo "|-----------|--------|--------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Frontend Security | ${{ needs.frontend-security.result == 'success' && '✅' || '❌' }} | ${{ needs.frontend-security.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Backend Security | ${{ needs.backend-security.result == 'success' && '✅' || '❌' }} | ${{ needs.backend-security.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security Scan | ${{ needs.security-scan.result == 'success' && '✅' || '❌' }} | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Container Security | ${{ needs.container-security.result == 'success' && '✅' || '❌' }} | ${{ needs.container-security.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Secrets Scan | ${{ needs.secrets-scan.result == 'success' && '✅' || '❌' }} | ${{ needs.secrets-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Secrets Detection | ${{ needs.secrets-detection.result == 'success' && '✅' || '❌' }} | ${{ needs.secrets-detection.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # 检查是否有严重安全问题
         CRITICAL_ISSUES=0
         
-        if [ "${{ needs.frontend-security.result }}" != "success" ]; then
+        if [ "${{ needs.security-scan.result }}" != "success" ]; then
           CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
         fi
         
-        if [ "${{ needs.backend-security.result }}" != "success" ]; then
+        if [ "${{ needs.container-security.result }}" != "success" ]; then
           CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
         fi
         
-        if [ "${{ needs.secrets-scan.result }}" != "success" ]; then
+        if [ "${{ needs.secrets-detection.result }}" != "success" ]; then
           CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
         fi
         
@@ -175,20 +174,18 @@ jobs:
       if: github.event_name == 'pull_request'
       with:
         script: |
-          const frontendStatus = '${{ needs.frontend-security.result }}';
-          const backendStatus = '${{ needs.backend-security.result }}';
+          const securityScanStatus = '${{ needs.security-scan.result }}';
           const containerStatus = '${{ needs.container-security.result }}';
-          const secretsStatus = '${{ needs.secrets-scan.result }}';
+          const secretsStatus = '${{ needs.secrets-detection.result }}';
           
           let comment = '## 🔒 Security Scan Report\n\n';
           comment += `| Component | Status | Result |\n`;
           comment += `|-----------|--------|--------|\n`;
-          comment += `| Frontend Security | ${frontendStatus === 'success' ? '✅' : '❌'} | ${frontendStatus} |\n`;
-          comment += `| Backend Security | ${backendStatus === 'success' ? '✅' : '❌'} | ${backendStatus} |\n`;
+          comment += `| Security Scan | ${securityScanStatus === 'success' ? '✅' : '❌'} | ${securityScanStatus} |\n`;
           comment += `| Container Security | ${containerStatus === 'success' ? '✅' : '❌'} | ${containerStatus} |\n`;
-          comment += `| Secrets Scan | ${secretsStatus === 'success' ? '✅' : '❌'} | ${secretsStatus} |\n\n`;
+          comment += `| Secrets Detection | ${secretsStatus === 'success' ? '✅' : '❌'} | ${secretsStatus} |\n\n`;
           
-          const criticalIssues = [frontendStatus, backendStatus, secretsStatus].filter(s => s !== 'success').length;
+          const criticalIssues = [securityScanStatus, containerStatus, secretsStatus].filter(s => s !== 'success').length;
           
           if (criticalIssues > 0) {
             comment += `⚠️ **${criticalIssues} critical security issues found!**\n\n`;
