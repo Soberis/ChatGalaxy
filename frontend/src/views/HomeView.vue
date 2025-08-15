@@ -201,8 +201,8 @@ onMounted(async () => {
 /**
  * 处理登录
  */
-const handleLogin = async (userData: { user: User; token: string }) => {
-  currentUser.value = userData.user
+const handleLogin = async (userData: { user: { id: string; username: string; email: string }; token: string }) => {
+  currentUser.value = userData.user as User
   isGuest.value = false
   ElMessage.success(`欢迎回来，${userData.user.username}！`)
 }
@@ -210,8 +210,8 @@ const handleLogin = async (userData: { user: User; token: string }) => {
 /**
  * 处理注册
  */
-const handleRegister = async (userData: { user: User; token: string }) => {
-  currentUser.value = userData.user
+const handleRegister = async (userData: { user: { id: string; username: string; email: string }; token: string }) => {
+  currentUser.value = userData.user as User
   isGuest.value = false
   ElMessage.success(`注册成功，欢迎加入 ChatGalaxy，${userData.user.username}！`)
 }

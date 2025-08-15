@@ -22,7 +22,7 @@ from pydantic import BaseModel
 
 from ..config import get_settings
 from ..models.ai_role import AIRole
-from ..models.chat import ChatRequest, ChatMode
+
 
 
 class AIProvider(Enum):

@@ -20,7 +20,7 @@ from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 import time
 import traceback
-from typing import Union
+
 
 from .core.config import get_settings
 from .utils.logger import get_logger, log_request, log_error
@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
         logger.info("数据库连接初始化成功")
         
         # 初始化AI客户端
-        ai_client = await get_ai_client()
+        await get_ai_client()
         logger.info("AI客户端初始化成功")
         
         logger.info("应用程序启动完成")

@@ -14,7 +14,7 @@ import sys
 import logging
 from pathlib import Path
 from loguru import logger
-from typing import Dict, Any
+from typing import Any
 
 from .config import settings
 

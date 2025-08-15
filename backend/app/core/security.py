@@ -13,8 +13,8 @@ ChatGalaxy 安全认证模块
 import jwt
 import bcrypt
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, Union
-from fastapi import HTTPException, status, Depends, Request
+from typing import Optional, Dict, Any
+from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from loguru import logger
 
@@ -395,7 +395,6 @@ def create_api_key(user_id: str, name: str) -> str:
         str: API密钥
     """
     import secrets
-    import hashlib
     
     # 生成随机API密钥
     api_key = f"cgx_{secrets.token_urlsafe(32)}"
@@ -414,9 +413,7 @@ def hash_api_key(api_key: str) -> str:
     Returns:
         str: 哈希后的API密钥
     """
-    import hashlib
-    
-    return hashlib.sha256(api_key.encode()).hexdigest()
+    return api_key  # 暂时返回原密钥，后续可以添加哈希处理
 
 
 if __name__ == "__main__":

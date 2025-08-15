@@ -12,9 +12,8 @@ ChatGalaxy 核心配置模块
 - 日志配置
 """
 
-import os
 from typing import List, Optional
-from pydantic import BaseModel, field_validator, Field
+from pydantic import field_validator, Field
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
