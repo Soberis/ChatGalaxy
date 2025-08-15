@@ -15,17 +15,14 @@ ChatGalaxy AI角色路由模块
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
-from datetime import datetime
 from loguru import logger
 
-from app.core import get_db_client, get_current_user, get_admin_user
+from app.core import get_db_client, get_admin_user
 from app.services.role_service import RoleService
 from app.models.role import (
-    AIRole,
     AIRoleCreate,
     AIRoleUpdate,
-    AIRoleResponse,
-    RoleConfig
+    AIRoleResponse
 )
 
 # 创建路由器

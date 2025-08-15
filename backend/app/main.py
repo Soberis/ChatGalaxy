@@ -20,12 +20,12 @@ from fastapi.exceptions import RequestValidationError
 from contextlib import asynccontextmanager
 import time
 import traceback
-from typing import Union
 
-from .config import get_settings
+
+from .core.config import get_settings
 from .utils.logger import get_logger, log_request, log_error
 from .utils.response import error_response
-from .database.manager import get_database_manager
+from .core.database import get_database_manager
 from .services.ai_client import get_ai_client, close_ai_client
 
 # 导入API路由
@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
         logger.info("数据库连接初始化成功")
         
         # 初始化AI客户端
-        ai_client = await get_ai_client()
+        await get_ai_client()
         logger.info("AI客户端初始化成功")
         
         logger.info("应用程序启动完成")
@@ -111,10 +111,10 @@ def create_app() -> FastAPI:
     # 配置CORS中间件
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
-        allow_credentials=settings.CORS_CREDENTIALS,
-        allow_methods=settings.CORS_METHODS,
-        allow_headers=settings.CORS_HEADERS,
+        allow_origins=settings.get_allowed_origins_list(),
+        allow_credentials=True,
+        allow_methods=settings.ALLOWED_METHODS,
+        allow_headers=settings.ALLOWED_HEADERS,
     )
     
     # 配置受信任主机中间件

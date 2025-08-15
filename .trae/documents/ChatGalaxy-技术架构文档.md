@@ -2,7 +2,7 @@
 
 ## 1. 架构设计
 
-```
+````
 
 ## 7. 容器化部署 (Docker)
 
@@ -23,9 +23,10 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-```
+````
 
 **后端Dockerfile**
+
 ```dockerfile
 FROM python:3.11-slim
 WORKDIR /app
@@ -37,6 +38,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 **Docker Compose配置**
+
 ```yaml
 version: '3.8'
 services:
@@ -69,24 +71,35 @@ services:
 ### 8.1 前端性能优化
 
 * **代码分割**: Vue3 + Vite动态导入，按路由分包
+
 * **资源优化**: 图片懒加载、WebP格式、CDN加速
+
 * **缓存策略**: HTTP缓存、Service Worker、本地存储
+
 * **打包优化**: Tree-shaking、代码压缩、Gzip压缩
+
 * **渲染优化**: 虚拟滚动、防抖节流、组件懒加载
 
 ### 8.2 后端性能优化
 
 * **异步处理**: FastAPI异步路由、数据库连接池
+
 * **缓存机制**: Redis缓存热点数据、查询结果缓存
+
 * **数据库优化**: 索引优化、查询优化、连接池管理
+
 * **API限流**: 基于IP和用户的请求限制
+
 * **WebSocket优化**: 连接池管理、消息队列、心跳检测
 
 ### 8.3 数据库性能优化
 
 * **索引策略**: 复合索引、部分索引、全文搜索索引
+
 * **查询优化**: 避免N+1查询、使用EXPLAIN分析
+
 * **分页优化**: 游标分页、索引分页
+
 * **数据归档**: 历史数据定期归档、冷热数据分离
 
 ## 9. 监控与日志
@@ -94,13 +107,17 @@ services:
 ### 9.1 应用监控
 
 * **性能指标**: 响应时间、吞吐量、错误率
+
 * **业务指标**: 用户活跃度、消息发送量、AI调用次数
+
 * **系统指标**: CPU、内存、磁盘、网络使用率
+
 * **实时告警**: 异常检测、阈值告警、故障通知
 
 ### 9.2 日志管理
 
 **结构化日志格式**
+
 ```json
 {
   "timestamp": "2025-01-01T12:00:00Z",
@@ -116,17 +133,25 @@ services:
 ```
 
 **日志级别**
+
 * **DEBUG**: 详细调试信息
+
 * **INFO**: 一般信息记录
+
 * **WARNING**: 警告信息
+
 * **ERROR**: 错误信息
+
 * **CRITICAL**: 严重错误
 
 ### 9.3 安全监控
 
 * **访问日志**: 记录所有API访问
+
 * **异常检测**: 异常登录、频繁请求检测
+
 * **安全事件**: 认证失败、权限违规记录
+
 * **数据保护**: 敏感数据脱敏、审计日志
 
 ## 10. 开发最佳实践
@@ -134,23 +159,33 @@ services:
 ### 10.1 代码规范
 
 * **TypeScript**: 严格模式、类型定义完整
+
 * **ESLint**: 代码风格统一、潜在问题检测
+
 * **Prettier**: 代码格式化、团队协作一致性
+
 * **Git Hooks**: 提交前代码检查、自动格式化
 
 ### 10.2 测试策略
 
 * **单元测试**: Jest + Vue Test Utils (前端)
+
 * **集成测试**: pytest + FastAPI TestClient (后端)
+
 * **E2E测试**: Playwright 自动化测试
+
 * **API测试**: Postman + Newman 自动化
 
 ### 10.3 CI/CD流程
 
 * **代码提交**: Git hooks + 代码检查
+
 * **自动构建**: GitHub Actions + Docker
+
 * **自动测试**: 单元测试 + 集成测试
+
 * **自动部署**: Vercel (前端) + Render (后端)
+
 * **版本管理**: 语义化版本 + 自动标签
 
 ```mermaid
@@ -202,21 +237,33 @@ graph TD
 ### 2.2 开发工具链
 
 * **构建工具**: Vite 7.0+ (HMR热更新、ESBuild优化)
+
 * **代码质量**: ESLint + Prettier + TypeScript严格模式
+
 * **CSS框架**: TailwindCSS 3.4+ (JIT编译、自定义主题)
+
 * **UI组件**: Element Plus 2.10+ (Vue3原生支持)
+
 * **状态管理**: Composition API + Pinia (可选)
+
 * **HTTP客户端**: Axios + 请求拦截器
+
 * **WebSocket**: 原生WebSocket + 心跳检测 + 断线重连
 
 ### 2.3 后端架构特性
 
 * **异步框架**: FastAPI (高性能异步处理)
+
 * **数据验证**: Pydantic 2.5+ (类型安全、性能优化)
+
 * **ORM**: SQLAlchemy 2.0+ (异步支持)
+
 * **WebSocket**: FastAPI原生WebSocket支持
+
 * **中间件**: CORS、认证、限流、日志记录
+
 * **缓存**: Redis (可选，用于会话缓存)
+
 * **监控**: 结构化日志 + 性能指标收集
 
 ## 3. 路由定义

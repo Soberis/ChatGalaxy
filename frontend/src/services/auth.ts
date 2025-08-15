@@ -8,28 +8,28 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 })
 
 // 请求拦截器 - 添加JWT token
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('auth_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
   },
-  (error) => {
+  error => {
     return Promise.reject(error)
   }
 )
 
 // 响应拦截器 - 处理token过期
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       // Token过期，清除本地存储并跳转到登录页
       localStorage.removeItem('auth_token')
@@ -81,11 +81,11 @@ export class AuthService {
     try {
       const response = await api.post('/api/auth/login', credentials)
       const authData = response.data
-      
+
       // 保存token和用户信息到本地存储
       localStorage.setItem('auth_token', authData.access_token)
       localStorage.setItem('user_info', JSON.stringify(authData.user))
-      
+
       return authData
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || '登录失败')
@@ -101,11 +101,11 @@ export class AuthService {
     try {
       const response = await api.post('/api/auth/register', userData)
       const authData = response.data
-      
+
       // 保存token和用户信息到本地存储
       localStorage.setItem('auth_token', authData.access_token)
       localStorage.setItem('user_info', JSON.stringify(authData.user))
-      
+
       return authData
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || '注册失败')
@@ -136,10 +136,10 @@ export class AuthService {
     try {
       const response = await api.get('/api/auth/me')
       const user = response.data
-      
+
       // 更新本地存储的用户信息
       localStorage.setItem('user_info', JSON.stringify(user))
-      
+
       return user
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || '获取用户信息失败')
@@ -154,11 +154,11 @@ export class AuthService {
     try {
       const response = await api.post('/api/auth/refresh')
       const authData = response.data
-      
+
       // 更新本地存储的token
       localStorage.setItem('auth_token', authData.access_token)
       localStorage.setItem('user_info', JSON.stringify(authData.user))
-      
+
       return authData
     } catch (error: any) {
       // 刷新失败，清除本地存储
@@ -223,7 +223,7 @@ export class AuthService {
     try {
       await api.post('/api/auth/password-reset/confirm', {
         token,
-        new_password: newPassword
+        new_password: newPassword,
       })
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || '重置密码失败')

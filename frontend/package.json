@@ -1,10 +1,10 @@
 {
   "name": "frontend",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": "^20.16.0 || >=22.12.0"
   },
   "scripts": {
     "dev": "vite",
@@ -13,8 +13,13 @@
     "test:unit": "vitest",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
+    "type-check:dev": "vue-tsc --noEmit",
     "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "lint:check": "eslint . --max-warnings 10",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "check": "pnpm run lint:check && pnpm run type-check:dev && pnpm run format:check",
+    "fix": "pnpm run lint && pnpm run format"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",

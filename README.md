@@ -2,12 +2,39 @@
   <h1>🌌 ChatGalaxy</h1>
   <p><strong>基于2025年主流技术栈的智能AI聊天平台</strong></p>
   
+  <!-- 技术栈徽章 -->
   <p>
-    <img src="https://img.shields.io/badge/Vue.js-3.4-4FC08D?style=flat-square&logo=vue.js" alt="Vue.js">
-    <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript" alt="TypeScript">
+    <img src="https://img.shields.io/badge/Vue.js-3.5-4FC08D?style=flat-square&logo=vue.js" alt="Vue.js">
+    <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript" alt="TypeScript">
     <img src="https://img.shields.io/badge/FastAPI-0.104-009688?style=flat-square&logo=fastapi" alt="FastAPI">
     <img src="https://img.shields.io/badge/PostgreSQL-17-336791?style=flat-square&logo=postgresql" alt="PostgreSQL">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License">
+  </p>
+  
+  <!-- CI/CD 状态徽章 -->
+  <p>
+    <img src="https://github.com/Soberis/ChatGalaxy/workflows/Frontend%20CI/badge.svg" alt="Frontend CI">
+    <img src="https://github.com/Soberis/ChatGalaxy/workflows/Backend%20CI/badge.svg" alt="Backend CI">
+    <img src="https://github.com/Soberis/ChatGalaxy/workflows/Deploy/badge.svg" alt="Deploy">
+    <img src="https://github.com/Soberis/ChatGalaxy/workflows/Quality%20Checks/badge.svg" alt="Quality">
+    <img src="https://github.com/Soberis/ChatGalaxy/workflows/Security%20Scanning/badge.svg" alt="Security">
+  </p>
+  
+  <!-- 代码质量和部署状态 -->
+  <p>
+    <img src="https://codecov.io/gh/Soberis/ChatGalaxy/branch/main/graph/badge.svg" alt="Coverage">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=Soberis_ChatGalaxy&metric=alert_status" alt="Quality Gate">
+    <img src="https://api.netlify.com/api/v1/badges/your-site-id/deploy-status" alt="Netlify Status">
+    <img src="https://img.shields.io/github/deployments/Soberis/ChatGalaxy/production?label=vercel&logo=vercel" alt="Vercel">
+  </p>
+  
+  <!-- 项目统计 -->
+  <p>
+    <img src="https://img.shields.io/github/stars/Soberis/ChatGalaxy?style=flat-square" alt="Stars">
+    <img src="https://img.shields.io/github/forks/Soberis/ChatGalaxy?style=flat-square" alt="Forks">
+    <img src="https://img.shields.io/github/issues/Soberis/ChatGalaxy?style=flat-square" alt="Issues">
+    <img src="https://img.shields.io/github/last-commit/Soberis/ChatGalaxy?style=flat-square" alt="Last Commit">
+    <img src="https://img.shields.io/github/languages/top/Soberis/ChatGalaxy?style=flat-square" alt="Top Language">
   </p>
   
   <p>
@@ -37,13 +64,14 @@ ChatGalaxy 是一个现代化的AI聊天平台，采用2025年最流行的技术
 ## 🛠️ 技术栈
 
 ### 前端技术
-- **框架**: Vue 3.4 + TypeScript 5.0
-- **构建工具**: Vite 7.1
-- **UI组件**: Element Plus 2.4 + TailwindCSS 3.4
+- **框架**: Vue 3.5 + TypeScript 5.8
+- **构建工具**: Vite 7.0
+- **UI组件**: Element Plus 2.10 + TailwindCSS 3.4
 - **状态管理**: Pinia
 - **路由**: Vue Router 4
 - **HTTP客户端**: Axios
 - **实时通信**: WebSocket API
+- **测试框架**: Vitest + Vue Test Utils
 
 ### 后端技术
 - **框架**: Python 3.11 + FastAPI 0.104
@@ -52,12 +80,22 @@ ChatGalaxy 是一个现代化的AI聊天平台，采用2025年最流行的技术
 - **数据库**: PostgreSQL 17 (Supabase)
 - **认证**: JWT Token + Supabase Auth
 - **AI服务**: 阿里通义千问 (Qwen) API
+- **测试框架**: Pytest + Coverage
+
+### DevOps & CI/CD
+- **版本控制**: Git + GitHub
+- **CI/CD**: GitHub Actions (2025标准)
+- **代码质量**: ESLint, Prettier, SonarCloud
+- **安全扫描**: Snyk, Bandit, Safety
+- **测试覆盖**: Codecov集成
+- **容器化**: Docker + Multi-stage builds
 
 ### 部署架构
-- **前端**: Vercel (已部署)
+- **前端**: Vercel (已部署) [![Vercel](https://img.shields.io/badge/Vercel-Live-00C7B7?style=flat-square&logo=vercel)](https://traei69dx9j4-yaomh10-1706-sobers.vercel.app)
 - **后端**: Render (配置就绪)
 - **数据库**: Supabase (云托管)
 - **CDN**: 全球加速
+- **监控**: 实时性能监控
 
 ## 🎯 功能特性
 
@@ -241,25 +279,114 @@ ChatGalaxy/
 - TypeScript 严格模式开发
 - 提交信息遵循 Conventional Commits 规范
 
+### CI/CD 工作流
+
+项目配置了完整的GitHub Actions CI/CD流程，包含以下工作流：
+
+#### 🔄 前端CI (`frontend.yml`)
+- **触发条件**: 前端代码变更、PR创建
+- **检查项目**: TypeScript类型检查、ESLint代码分析、单元测试、构建验证
+- **覆盖率**: 自动生成测试覆盖率报告并上传Codecov
+- **多版本**: 支持Node.js 20.16.0和22.12.0测试
+
+#### 🐍 后端CI (`backend.yml`)
+- **触发条件**: 后端代码变更、PR创建
+- **检查项目**: Ruff代码检查、MyPy类型检查、Bandit安全扫描
+- **测试环境**: Python 3.11/3.12 + PostgreSQL集成测试
+- **性能测试**: 包含API性能基准测试和负载测试
+
+#### 🚀 自动部署 (`deploy.yml`)
+- **前端部署**: 自动部署到Vercel，包含构建优化和CDN配置
+- **后端部署**: 自动部署到Render，包含健康检查和回滚机制
+- **集成测试**: 部署后自动执行端到端测试验证
+
+#### 🔍 代码质量 (`quality.yml`)
+- **代码分析**: SonarCloud集成，全面的代码质量分析
+- **覆盖率监控**: 前后端测试覆盖率统计和趋势分析
+- **性能预算**: 前端包大小监控和性能预算检查
+
+#### 🛡️ 安全扫描 (`security.yml`)
+- **依赖扫描**: 使用Snyk、Safety等工具检测依赖漏洞
+- **代码安全**: Bandit、ESLint安全插件检测安全问题
+- **容器安全**: Trivy和Docker Scout容器镜像安全扫描
+- **敏感信息**: TruffleHog和GitLeaks检测敏感数据泄露
+
+#### 🔒 PR检查 (`pr-checks.yml`)
+- **PR验证**: 标题格式、描述完整性、文件变更范围检查
+- **自动标签**: 根据变更内容自动添加相应标签
+- **分支保护**: 强制代码审查和状态检查通过
+- **命令支持**: 支持`/rerun-ci`、`/ready-for-review`等PR命令
+
 ### 测试
 ```bash
 # 前端测试
 cd frontend
-pnpm test
+pnpm test              # 单元测试
+pnpm test:coverage     # 覆盖率测试
+pnpm test:e2e          # 端到端测试
 
 # 后端测试
 cd backend
-pytest
+pytest                 # 单元测试
+pytest --cov          # 覆盖率测试
+pytest tests/integration  # 集成测试
 ```
 
 ### 构建
 ```bash
 # 前端构建
 cd frontend
-pnpm build
+pnpm build             # 生产构建
+pnpm build:analyze     # 构建分析
+pnpm preview           # 预览构建结果
 
 # 后端无需构建，直接运行
+# Docker构建
+docker build -t chatgalaxy-backend ./backend
 ```
+
+### 本地开发工作流
+
+1. **创建功能分支**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **开发和测试**
+   ```bash
+   # 启动开发环境
+   pnpm dev              # 前端
+   python -m uvicorn app.main:app --reload  # 后端
+   
+   # 运行测试
+   pnpm test             # 前端测试
+   pytest                # 后端测试
+   ```
+
+3. **代码检查**
+   ```bash
+   # 前端代码检查
+   pnpm lint             # ESLint检查
+   pnpm format           # Prettier格式化
+   pnm type-check        # TypeScript检查
+   
+   # 后端代码检查
+   ruff check .          # 代码规范检查
+   mypy .                # 类型检查
+   bandit -r .           # 安全检查
+   ```
+
+4. **提交代码**
+   ```bash
+   git add .
+   git commit -m "feat(frontend): add new chat interface"
+   git push origin feature/your-feature-name
+   ```
+
+5. **创建PR**
+   - GitHub会自动触发CI/CD检查
+   - 确保所有检查通过后请求代码审查
+   - 合并到main分支后自动部署
 
 ## 📄 许可证
 

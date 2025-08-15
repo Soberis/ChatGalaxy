@@ -97,7 +97,7 @@ class DatabaseManager:
                 return False
             
             # 执行简单查询测试连接
-            result = self._client.table('users').select('id').limit(1).execute()
+            self._client.table('users').select('id').limit(1).execute()
             
             return True
             

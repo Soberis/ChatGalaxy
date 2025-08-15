@@ -12,9 +12,9 @@ ChatGalaxy 核心配置模块
 - 日志配置
 """
 
-import os
 from typing import List, Optional
-from pydantic import BaseSettings, validator
+from pydantic import field_validator, Field
+from pydantic_settings import BaseSettings
 from functools import lru_cache
 
 
@@ -34,13 +34,17 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
-    # CORS跨域配置
-    ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://127.0.0.1:3000",
-        "http://127.0.0.1:5173"
-    ]
+    # CORS配置
+    ALLOWED_ORIGINS: str = Field(
+        default="http://localhost:3000,http://localhost:5173",
+        description="允许的跨域来源，逗号分隔"
+    )
+    
+    def get_allowed_origins_list(self) -> List[str]:
+        """
+        获取ALLOWED_ORIGINS的列表格式
+        """
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(',') if origin.strip()]
     ALLOWED_METHODS: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     ALLOWED_HEADERS: List[str] = ["*"]
     
@@ -57,7 +61,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
     # 阿里通义千问API配置
-    DASHSCOPE_API_KEY: Optional[str] = None
+    QWEN_API_KEY: Optional[str] = None
     QWEN_MODEL: str = "qwen-turbo"
     QWEN_MAX_TOKENS: int = 2000
     QWEN_TEMPERATURE: float = 0.7
@@ -83,7 +87,8 @@ class Settings(BaseSettings):
         "jpg", "jpeg", "png", "gif", "pdf", "txt", "doc", "docx"
     ]
     
-    @validator("ALLOWED_ORIGINS", pre=True)
+    @field_validator("ALLOWED_ORIGINS", mode="before")
+    @classmethod
     def parse_cors_origins(cls, v):
         """
         解析CORS允许的源地址
@@ -94,11 +99,29 @@ class Settings(BaseSettings):
         Returns:
             List[str]: 解析后的源地址列表
         """
+        # 如果已经是列表，直接返回
+        if isinstance(v, list):
+            return v
+            
+        # 如果是字符串，尝试解析
         if isinstance(v, str):
+            # 尝试解析为JSON
+            try:
+                import json
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return parsed
+            except (json.JSONDecodeError, TypeError):
+                pass
+                
+            # 尝试按逗号分隔
             return [origin.strip() for origin in v.split(",")]
-        return v
+            
+        # 默认返回空列表
+        return []
     
-    @validator("ALLOWED_METHODS", pre=True)
+    @field_validator("ALLOWED_METHODS", mode="before")
+    @classmethod
     def parse_cors_methods(cls, v):
         """
         解析CORS允许的HTTP方法
@@ -113,7 +136,8 @@ class Settings(BaseSettings):
             return [method.strip() for method in v.split(",")]
         return v
     
-    @validator("ALLOWED_FILE_TYPES", pre=True)
+    @field_validator("ALLOWED_FILE_TYPES", mode="before")
+    @classmethod
     def parse_file_types(cls, v):
         """
         解析允许的文件类型
@@ -148,13 +172,12 @@ class Settings(BaseSettings):
         """
         return self.ENVIRONMENT.lower() == "development"
     
-    class Config:
-        """
-        Pydantic配置类
-        """
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": True,
+        "extra": "ignore"
+    }
 
 
 @lru_cache()
@@ -195,8 +218,8 @@ def validate_config() -> bool:
         if not settings.SUPABASE_SERVICE_ROLE_KEY:
             errors.append("生产环境必须配置 SUPABASE_SERVICE_ROLE_KEY")
         
-        if not settings.DASHSCOPE_API_KEY:
-            errors.append("生产环境必须配置 DASHSCOPE_API_KEY")
+        if not settings.QWEN_API_KEY:
+            errors.append("生产环境必须配置 QWEN_API_KEY")
     
     if errors:
         for error in errors:
