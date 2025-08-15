@@ -14,7 +14,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.security import HTTPBearer
 from typing import Optional, Dict, Any
 import time
-from datetime import datetime
 
 from ..models.chat_message import (
     ChatMessageCreate, ChatMessageUpdate,

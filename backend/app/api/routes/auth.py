@@ -16,7 +16,6 @@ ChatGalaxy 认证路由模块
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from pydantic import BaseModel, EmailStr, Field
 from typing import Dict, Any
-from datetime import datetime
 from loguru import logger
 
 from app.core import (
@@ -27,7 +26,7 @@ from app.core import (
 )
 from app.services.auth_service import AuthService
 from app.services.email_service import EmailService
-from app.models.user import UserCreate, UserResponse, UserLogin
+from app.models.user import UserCreate, UserResponse
 
 # 创建路由器
 router = APIRouter(prefix="/auth", tags=["认证"])

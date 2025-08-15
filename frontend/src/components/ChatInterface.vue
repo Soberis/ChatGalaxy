@@ -210,8 +210,9 @@ const handleSendMessage = async () => {
     await nextTick()
     scrollToBottom()
     
-  } catch (error: any) {
-    ElMessage.error(error.message || '发送消息失败，请重试')
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : '发送消息失败，请重试'
+    ElMessage.error(errorMessage)
     console.error('发送消息错误:', error)
   } finally {
     isLoading.value = false

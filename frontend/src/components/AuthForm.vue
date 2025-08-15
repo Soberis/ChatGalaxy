@@ -211,7 +211,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
   ChatDotRound,
@@ -224,8 +224,8 @@ import { AuthService, type LoginRequest, type RegisterRequest } from '../service
 
 // 定义事件
 const emit = defineEmits<{
-  login: [user: any]
-  register: [user: any]
+  login: [user: { id: string; username: string; email: string }]
+  register: [user: { id: string; username: string; email: string }]
   guestMode: []
 }>()
 
@@ -369,9 +369,10 @@ const handleLogin = async () => {
     ElMessage.success('登录成功')
     emit('login', authResponse.user)
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('登录失败:', error)
-    ElMessage.error(error.message || '登录失败，请检查邮箱和密码')
+    const errorMessage = error instanceof Error ? error.message : '登录失败，请检查邮箱和密码'
+    ElMessage.error(errorMessage)
   } finally {
     isLoading.value = false
   }
@@ -401,9 +402,10 @@ const handleRegister = async () => {
     ElMessage.success('注册成功')
     emit('register', authResponse.user)
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('注册失败:', error)
-    ElMessage.error(error.message || '注册失败，请重试')
+    const errorMessage = error instanceof Error ? error.message : '注册失败，请重试'
+    ElMessage.error(errorMessage)
   } finally {
     isLoading.value = false
   }
@@ -428,9 +430,10 @@ const handleForgotPassword = async () => {
     showForgotPassword.value = false
     forgotPasswordForm.email = ''
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('发送重置邮件失败:', error)
-    ElMessage.error(error.message || '发送失败，请重试')
+    const errorMessage = error instanceof Error ? error.message : '发送失败，请重试'
+    ElMessage.error(errorMessage)
   } finally {
     isLoading.value = false
   }
