@@ -12,24 +12,23 @@ ChatGalaxy 聊天API模块
 
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from fastapi.security import HTTPBearer
-from typing import List, Optional, Dict, Any
-import uuid
+from typing import Optional, Dict, Any
 import time
 from datetime import datetime
 
 from ..models.chat_message import (
-    ChatMessageCreate, ChatMessageResponse, ChatMessageUpdate,
-    MessageType, MessageStatus
+    ChatMessageCreate, ChatMessageUpdate,
+    MessageType
 )
 from ..models.chat_session import (
-    ChatSessionCreate, ChatSessionResponse, ChatSessionUpdate
+    ChatSessionCreate, ChatSessionUpdate
 )
 from ..models.user import UserResponse
 from ..services.chat_service import get_chat_service
 from ..services.auth_service import get_current_user
 from ..services.ai_client import get_ai_client
 from ..utils.response import (
-    success_response, error_response, paginated_response
+    success_response, paginated_response
 )
 from ..utils.logger import get_logger, log_error, log_ai_request
 from ..config import get_settings

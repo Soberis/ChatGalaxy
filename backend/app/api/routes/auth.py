@@ -14,9 +14,8 @@ ChatGalaxy 认证路由模块
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
-from fastapi.security import HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from datetime import datetime
 from loguru import logger
 

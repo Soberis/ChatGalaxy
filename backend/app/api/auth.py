@@ -12,7 +12,7 @@ from ..models.user import User, UserCreate, UserUpdate, UserResponse
 from ..config import get_settings
 from ..services.auth_service import AuthService
 from ..services.user_service import UserService
-from ..utils.response import success_response, error_response
+from ..utils.response import success_response
 from ..utils.logger import get_logger
 
 # 初始化路由器
