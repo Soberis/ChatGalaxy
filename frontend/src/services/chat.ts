@@ -5,14 +5,14 @@ export enum WebSocketStatus {
   CONNECTING = 'connecting',
   CONNECTED = 'connected',
   DISCONNECTED = 'disconnected',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 // 消息类型
 export enum MessageType {
   USER = 'user',
   AI = 'ai',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
 }
 
 // 消息接口
@@ -80,15 +80,15 @@ export class ChatService {
   static async connectWebSocket(): Promise<void> {
     const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws'
     const token = localStorage.getItem('auth_token')
-    
+
     try {
       this.wsStatus = WebSocketStatus.CONNECTING
       this.notifyStatusHandlers()
-      
+
       // 构建WebSocket URL，包含认证token
       const url = token ? `${wsUrl}?token=${token}` : wsUrl
       this.ws = new WebSocket(url)
-      
+
       this.ws.onopen = () => {
         console.log('WebSocket连接已建立')
         this.wsStatus = WebSocketStatus.CONNECTED
@@ -96,8 +96,8 @@ export class ChatService {
         this.notifyStatusHandlers()
         this.startHeartbeat()
       }
-      
-      this.ws.onmessage = (event) => {
+
+      this.ws.onmessage = event => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data)
           this.notifyMessageHandlers(message)
@@ -105,25 +105,24 @@ export class ChatService {
           console.error('解析WebSocket消息失败:', error)
         }
       }
-      
-      this.ws.onclose = (event) => {
+
+      this.ws.onclose = event => {
         console.log('WebSocket连接已关闭:', event.code, event.reason)
         this.wsStatus = WebSocketStatus.DISCONNECTED
         this.notifyStatusHandlers()
         this.stopHeartbeat()
-        
+
         // 自动重连
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
           this.scheduleReconnect()
         }
       }
-      
-      this.ws.onerror = (error) => {
+
+      this.ws.onerror = error => {
         console.error('WebSocket错误:', error)
         this.wsStatus = WebSocketStatus.ERROR
         this.notifyStatusHandlers()
       }
-      
     } catch (error) {
       console.error('WebSocket连接失败:', error)
       this.wsStatus = WebSocketStatus.ERROR
@@ -180,9 +179,9 @@ export class ChatService {
   private static scheduleReconnect(): void {
     this.reconnectAttempts++
     const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
-    
+
     console.log(`${delay}ms后尝试第${this.reconnectAttempts}次重连...`)
-    
+
     setTimeout(() => {
       this.connectWebSocket()
     }, delay)
@@ -298,7 +297,7 @@ export class ChatService {
     try {
       const response = await api.post('/api/chat/sessions', {
         title,
-        role_id: roleId
+        role_id: roleId,
       })
       return response.data
     } catch (error: any) {

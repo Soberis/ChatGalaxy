@@ -9,17 +9,17 @@ const router = createRouter({
       name: 'home',
       component: HomeView,
       meta: {
-        title: 'ChatGalaxy - AI智能聊天平台'
-      }
+        title: 'ChatGalaxy - AI智能聊天平台',
+      },
     },
     {
       path: '/chat',
       name: 'chat',
       component: HomeView,
       meta: {
-        title: 'ChatGalaxy - 聊天'
-      }
-    }
+        title: 'ChatGalaxy - 聊天',
+      },
+    },
   ],
 })
 

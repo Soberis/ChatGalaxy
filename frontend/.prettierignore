@@ -1,0 +1,86 @@
+# 依赖目录
+node_modules/
+dist/
+dist-ssr/
+coverage/
+
+# 构建输出
+build/
+out/
+
+# 缓存目录
+.cache/
+.temp/
+.tmp/
+
+# 日志文件
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 环境文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE 配置
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 包管理器文件
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 数据库文件
+*.db
+*.sqlite
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar
+
+# 图片和媒体文件
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.mp4
+*.mp3
+*.wav
+
+# 字体文件
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# 其他不需要格式化的文件
+*.min.js
+*.min.css
+*.bundle.js
+*.chunk.js
+
+# 第三方库文件
+public/vendor/
+src/vendor/
+
+# 测试覆盖率报告
+coverage/
+.nyc_output/
+
+# 临时文件
+*.tmp
+*.temp
