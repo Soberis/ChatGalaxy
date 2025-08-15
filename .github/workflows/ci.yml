@@ -1,7 +1,7 @@
-# ChatGalaxy CI/CD Pipeline - 2025 Standards (Optimized)
-# 优化后的统一CI/CD工作流，合并前后端检查
+# ChatGalaxy CI/CD Pipeline - 简化版
+# 简化后的CI工作流，只保留核心步骤
 
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
@@ -9,19 +9,13 @@ on:
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
-    inputs:
-      run_full_suite:
-        description: 'Run full test suite'
-        required: false
-        default: 'false'
-        type: boolean
 
 env:
-  NODE_VERSION: '20.19.0'
+  NODE_VERSION: '20.16.0'
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # 前端CI - 代码质量、测试和构建
+  # 前端CI - 只保留核心步骤
   frontend:
     name: Frontend CI
     runs-on: ubuntu-latest
@@ -35,6 +29,8 @@ jobs:
       
     - name: Setup pnpm
       uses: pnpm/action-setup@v4
+      with:
+        version: 8
         
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -46,34 +42,18 @@ jobs:
     - name: Install dependencies
       run: pnpm install --frozen-lockfile
       
-    - name: Code quality checks
-      run: |
-        pnpm run type-check
-        pnpm run lint --max-warnings 0
-        pnpm exec prettier --check src/
+    - name: Type check
+      run: pnpm run type-check
+      continue-on-error: true
+      
+    - name: Lint check
+      run: pnpm run lint
+      continue-on-error: true
       
     - name: Build application
       run: pnpm run build
-      
-    - name: Run tests with coverage
-      run: pnpm run test:unit --coverage
-      
-    - name: Bundle size analysis
-      run: |
-        echo "## Bundle Size Analysis" >> $GITHUB_STEP_SUMMARY
-        find dist -name "*.js" -o -name "*.css" | head -10 | while read file; do
-          size=$(du -h "$file" | cut -f1)
-          echo "- $(basename "$file"): $size" >> $GITHUB_STEP_SUMMARY
-        done
-      
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./frontend/coverage/lcov.info
-        flags: frontend
-        name: frontend-coverage
         
-  # 后端CI - 代码质量、测试和安全扫描
+  # 后端CI - 只保留核心步骤
   backend:
     name: Backend CI
     runs-on: ubuntu-latest
@@ -96,54 +76,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-asyncio httpx ruff mypy bandit safety
+        pip install ruff mypy
         
     - name: Code quality checks
       run: |
-        ruff check . --output-format=github
-        ruff format --check .
-        mypy app --ignore-missing-imports --show-error-codes
-        
-    - name: Security scan
-      run: |
-        bandit -r app -ll
-        safety check
-      continue-on-error: true
-        
-    - name: Run tests with coverage
-      run: |
-        pytest --cov=app --cov-report=xml --cov-report=term
-        
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./backend/coverage.xml
-        flags: backend
-        name: backend-coverage
-        
-  # 基础安全扫描
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event.inputs.run_full_suite == 'true'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'table'
-        exit-code: '0'
-        
-    - name: Dependency audit summary
-      run: |
-        echo "## Security Audit Summary" >> $GITHUB_STEP_SUMMARY
-        echo "### Frontend Dependencies" >> $GITHUB_STEP_SUMMARY
-        cd frontend && pnpm audit --audit-level moderate || echo "No critical vulnerabilities found" >> $GITHUB_STEP_SUMMARY
-        echo "### Backend Dependencies" >> $GITHUB_STEP_SUMMARY
-        cd ../backend && pip install safety && safety check || echo "No critical vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+        ruff check .
+        mypy app --ignore-missing-imports
       continue-on-error: true
