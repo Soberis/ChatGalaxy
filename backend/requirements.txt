@@ -14,8 +14,8 @@ alembic==1.13.1
 
 # 认证和安全
 python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-bcrypt==4.1.2
+passlib[argon2]==1.7.4  # 使用argon2替代bcrypt，避免Rust编译问题
+argon2-cffi==23.1.0     # argon2的Python绑定，纯Python实现
 python-multipart==0.0.6
 
 # WebSocket支持

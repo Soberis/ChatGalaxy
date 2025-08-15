@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/auth", tags=["认证"])
 
 # 初始化安全组件
 security = HTTPBearer()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 settings = get_settings()
 logger = get_logger(__name__)
 

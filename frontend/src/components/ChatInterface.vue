@@ -134,8 +134,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { ElMessage } from 'element-plus'
 import { User, Delete, Switch, ChatDotRound, Loading, Promotion } from '@element-plus/icons-vue'
 import { 
   ChatService, 
@@ -146,7 +146,6 @@ import {
   WebSocketStatus,
   MessageType
 } from '../services/chat'
-import { AuthService } from '../services/auth'
 
 // 组件属性定义
 interface Props {
