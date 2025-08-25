@@ -1,126 +1,197 @@
 <template>
-  <div class="auth-form max-w-md mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-8">
-      <!-- Logo和标题 -->
-      <div class="text-center mb-8">
-        <div class="w-16 h-16 bg-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <el-icon size="32" class="text-white"><ChatDotRound /></el-icon>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">ChatGalaxy</h1>
-        <p class="text-gray-600">
-          {{ isLogin ? '欢迎回来' : '创建您的账户' }}
-        </p>
-      </div>
-
-      <!-- 表单切换标签 -->
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="auth-tabs">
-        <el-tab-pane label="登录" name="login">
-          <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" @submit.prevent="handleLogin" class="mt-6">
-            <el-form-item prop="email">
-              <el-input
-                v-model="loginForm.email"
-                type="email"
-                placeholder="邮箱地址"
-                size="large"
-                :prefix-icon="Message"
-              />
-            </el-form-item>
-
-            <el-form-item prop="password">
-              <el-input
-                v-model="loginForm.password"
-                type="password"
-                placeholder="密码"
-                size="large"
-                :prefix-icon="Lock"
-                show-password
-              />
-            </el-form-item>
-
-            <el-form-item>
-              <div class="flex items-center justify-between w-full">
-                <el-checkbox v-model="loginForm.remember">记住我</el-checkbox>
-                <el-button type="text" @click="showForgotPassword = true"> 忘记密码？ </el-button>
+  <div class="auth-form">
+    <div class="container w-full max-w-md lg:max-w-6xl mx-auto">
+      <div class="bg-white rounded-lg shadow-2xl overflow-hidden lg:flex lg:min-h-[600px]">
+        <!-- 左侧装饰区域 - 大屏幕显示 -->
+        <div
+          class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary-500 to-purple-600 relative items-center justify-center"
+        >
+          <div class="text-center text-white p-12">
+            <div class="w-40 h-40 mx-auto mb-6 flex items-center justify-center overflow-hidden rounded-2xl">
+              <img
+                src="@/assets/images/logo.png"
+                alt="ChatGalaxy Logo"
+                class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                style="transform: scale(1.8); object-position: center; image-rendering: -webkit-optimize-contrast;"
+            </div>
+            <h2 class="text-3xl font-bold mb-4">欢迎来到 ChatGalaxy</h2>
+            <p class="text-lg text-white text-opacity-90 mb-6">与AI智能助手开启精彩对话</p>
+            <div class="space-y-3 text-left">
+              <div class="flex items-center">
+                <el-icon class="mr-3"><Check /></el-icon>
+                <span>多种AI角色，满足不同需求</span>
               </div>
-            </el-form-item>
+              <div class="flex items-center">
+                <el-icon class="mr-3"><Check /></el-icon>
+                <span>实时对话，流畅体验</span>
+              </div>
+              <div class="flex items-center">
+                <el-icon class="mr-3"><Check /></el-icon>
+                <span>安全可靠，隐私保护</span>
+              </div>
+            </div>
+          </div>
+          <!-- 装饰元素 -->
+          <div class="absolute top-10 right-10 w-32 h-32 bg-white bg-opacity-10 rounded-full animate-pulse"></div>
+          <div
+            class="absolute bottom-10 left-10 w-24 h-24 bg-white bg-opacity-10 rounded-full animate-pulse"
+            style="animation-delay: 1s"
+          ></div>
+          <div
+            class="absolute top-1/2 left-5 w-16 h-16 bg-white bg-opacity-5 rounded-full animate-pulse"
+            style="animation-delay: 2s"
+          ></div>
+          <div
+            class="absolute bottom-1/4 right-5 w-20 h-20 bg-white bg-opacity-5 rounded-full animate-pulse"
+            style="animation-delay: 0.5s"
+          ></div>
+        </div>
 
-            <el-form-item>
-              <el-button type="primary" size="large" class="w-full" :loading="isLoading" @click="handleLogin">
-                登录
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-
-        <el-tab-pane label="注册" name="register">
-          <el-form
-            ref="registerFormRef"
-            :model="registerForm"
-            :rules="registerRules"
-            @submit.prevent="handleRegister"
-            class="mt-6"
-          >
-            <el-form-item prop="username">
-              <el-input v-model="registerForm.username" placeholder="用户名" size="large" :prefix-icon="User" />
-            </el-form-item>
-
-            <el-form-item prop="email">
-              <el-input
-                v-model="registerForm.email"
-                type="email"
-                placeholder="邮箱地址"
-                size="large"
-                :prefix-icon="Message"
+        <!-- 右侧表单区域 -->
+        <div class="lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-center">
+          <!-- Logo和标题 - 小屏幕显示 -->
+          <div class="text-center mb-8 lg:hidden">
+            <div class="w-32 h-32 mx-auto mb-4 flex items-center justify-center overflow-hidden rounded-xl">
+              <img
+                src="@/assets/images/logo.png"
+                alt="ChatGalaxy Logo"
+                class="w-full h-full object-cover transition-transform duration-300"
+                style="transform: scale(1.6); object-position: center; image-rendering: -webkit-optimize-contrast;"
               />
-            </el-form-item>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">ChatGalaxy</h1>
+            <p class="text-gray-600">
+              {{ isLogin ? '欢迎回来' : '创建您的账户' }}
+            </p>
+          </div>
 
-            <el-form-item prop="password">
-              <el-input
-                v-model="registerForm.password"
-                type="password"
-                placeholder="密码"
-                size="large"
-                :prefix-icon="Lock"
-                show-password
-              />
-            </el-form-item>
+          <!-- 大屏幕简化标题 -->
+          <div class="hidden lg:block text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">
+              {{ isLogin ? '欢迎回来' : '创建账户' }}
+            </h1>
+            <p class="text-gray-600">
+              {{ isLogin ? '登录您的ChatGalaxy账户' : '加入ChatGalaxy，开启AI对话之旅' }}
+            </p>
+          </div>
 
-            <el-form-item prop="confirmPassword">
-              <el-input
-                v-model="registerForm.confirmPassword"
-                type="password"
-                placeholder="确认密码"
-                size="large"
-                :prefix-icon="Lock"
-                show-password
-              />
-            </el-form-item>
+          <!-- 表单切换标签 -->
+          <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="auth-tabs">
+            <el-tab-pane label="登录" name="login">
+              <el-form
+                ref="loginFormRef"
+                :model="loginForm"
+                :rules="loginRules"
+                @submit.prevent="handleLogin"
+                class="mt-6"
+              >
+                <el-form-item prop="email">
+                  <el-input
+                    v-model="loginForm.email"
+                    type="email"
+                    placeholder="邮箱地址"
+                    size="large"
+                    :prefix-icon="Message"
+                  />
+                </el-form-item>
 
-            <el-form-item prop="agreement">
-              <el-checkbox v-model="registerForm.agreement">
-                我已阅读并同意
-                <el-button type="text" @click="showTerms = true">用户协议</el-button>
-                和
-                <el-button type="text" @click="showPrivacy = true">隐私政策</el-button>
-              </el-checkbox>
-            </el-form-item>
+                <el-form-item prop="password">
+                  <el-input
+                    v-model="loginForm.password"
+                    type="password"
+                    placeholder="密码"
+                    size="large"
+                    :prefix-icon="Lock"
+                    show-password
+                  />
+                </el-form-item>
 
-            <el-form-item>
-              <el-button type="primary" size="large" class="w-full" :loading="isLoading" @click="handleRegister">
-                注册
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-tab-pane>
-      </el-tabs>
+                <el-form-item>
+                  <div class="flex items-center justify-between w-full">
+                    <el-checkbox v-model="loginForm.remember">记住我</el-checkbox>
+                    <el-button type="text" @click="showForgotPassword = true"> 忘记密码？ </el-button>
+                  </div>
+                </el-form-item>
 
-      <!-- 访客模式 -->
-      <div class="mt-6 pt-6 border-t border-gray-200">
-        <el-button type="text" class="w-full text-gray-600 hover:text-primary-500" @click="handleGuestMode">
-          <el-icon class="mr-2"><UserFilled /></el-icon>
-          以访客身份继续
-        </el-button>
-        <p class="text-xs text-gray-500 text-center mt-2">访客模式下的聊天记录不会被保存</p>
+                <el-form-item>
+                  <el-button type="primary" size="large" class="w-full" :loading="isLoading" @click="handleLogin">
+                    登录
+                  </el-button>
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
+
+            <el-tab-pane label="注册" name="register">
+              <el-form
+                ref="registerFormRef"
+                :model="registerForm"
+                :rules="registerRules"
+                @submit.prevent="handleRegister"
+                class="mt-6"
+              >
+                <el-form-item prop="username">
+                  <el-input v-model="registerForm.username" placeholder="用户名" size="large" :prefix-icon="User" />
+                </el-form-item>
+
+                <el-form-item prop="email">
+                  <el-input
+                    v-model="registerForm.email"
+                    type="email"
+                    placeholder="邮箱地址"
+                    size="large"
+                    :prefix-icon="Message"
+                  />
+                </el-form-item>
+
+                <el-form-item prop="password">
+                  <el-input
+                    v-model="registerForm.password"
+                    type="password"
+                    placeholder="密码"
+                    size="large"
+                    :prefix-icon="Lock"
+                    show-password
+                  />
+                </el-form-item>
+
+                <el-form-item prop="confirmPassword">
+                  <el-input
+                    v-model="registerForm.confirmPassword"
+                    type="password"
+                    placeholder="确认密码"
+                    size="large"
+                    :prefix-icon="Lock"
+                    show-password
+                  />
+                </el-form-item>
+
+                <el-form-item prop="agreement">
+                  <el-checkbox v-model="registerForm.agreement">
+                    我已阅读并同意
+                    <el-button type="text" @click="showTerms = true">用户协议</el-button>
+                    和
+                    <el-button type="text" @click="showPrivacy = true">隐私政策</el-button>
+                  </el-checkbox>
+                </el-form-item>
+
+                <el-form-item>
+                  <el-button type="primary" size="large" class="w-full" :loading="isLoading" @click="handleRegister">
+                    注册
+                  </el-button>
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
+          </el-tabs>
+
+          <!-- 访客模式 -->
+          <div class="mt-6 pt-6 border-t border-gray-200">
+            <el-button type="text" class="w-full text-gray-600 hover:text-primary-500" @click="handleGuestMode">
+              <el-icon class="mr-2"><UserFilled /></el-icon>
+              以访客身份继续
+            </el-button>
+            <p class="text-xs text-gray-500 text-center mt-2">访客模式下的聊天记录不会被保存</p>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -177,11 +248,11 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, reactive, computed } from 'vue'
-  import { ElMessage } from 'element-plus'
-  import type { FormInstance, FormRules } from 'element-plus'
-  import { ChatDotRound, Message, Lock, User, UserFilled } from '@element-plus/icons-vue'
-  import { AuthService, type LoginRequest, type RegisterRequest } from '../services/auth'
+  import { Check, Lock, Message, User, UserFilled } from '@element-plus/icons-vue'
+import type { FormInstance, FormRules } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { computed, reactive, ref } from 'vue'
+import { AuthService, type LoginRequest, type RegisterRequest } from '../services/auth'
 
   // 定义事件
   const emit = defineEmits<{
@@ -409,10 +480,45 @@
 <style scoped>
   .auth-form {
     min-height: 100vh;
+    width: 100vw;
     display: flex;
     align-items: center;
+    justify-content: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .auth-form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 70%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    padding: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding: 3rem;
+    }
   }
 
   .auth-tabs :deep(.el-tabs__header) {
@@ -441,5 +547,52 @@
 
   .dialog-footer .el-button {
     margin-left: 10px;
+  }
+
+  /* PNG Logo 留白优化样式 */
+  img[src$=".png"] {
+    /* 提升PNG清晰度 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: optimizeQuality;
+  }
+
+  /* 登录页面大Logo留白优化 */
+  .auth-form .w-40.h-40 img[alt="ChatGalaxy Logo"] {
+    /* 使用object-cover + scale来裁剪留白 */
+    object-fit: cover;
+    /* 增强视觉效果 */
+    filter:
+      drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15))
+      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))
+      contrast(1.1)
+      brightness(1.05);
+    transition: all 0.3s ease;
+  }
+
+  /* 小屏幕Logo留白优化 */
+  .auth-form .w-32.h-32 img[alt="ChatGalaxy Logo"] {
+    object-fit: cover;
+    filter:
+      drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12))
+      contrast(1.05)
+      brightness(1.02);
+  }
+
+  /* 悬停效果优化 */
+  .auth-form img[alt="ChatGalaxy Logo"]:hover {
+    filter:
+      drop-shadow(0 12px 24px rgba(0, 0, 0, 0.2))
+      drop-shadow(0 6px 12px rgba(0, 0, 0, 0.15))
+      contrast(1.15)
+      brightness(1.08);
+  }
+
+  /* 容器圆角增强视觉效果 */
+  .auth-form .rounded-2xl,
+  .auth-form .rounded-xl {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
   }
 </style>

@@ -8,33 +8,40 @@
       <!-- 顶部导航栏 -->
       <header class="chat-header bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between items-center h-16">
+          <div class="flex justify-between items-center h-14 sm:h-16">
             <!-- Logo和标题 -->
             <div class="flex items-center">
-              <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center mr-3">
-                <el-icon size="20" class="text-white"><ChatDotRound /></el-icon>
+              <div
+                class="w-8 h-8 sm:w-10 sm:h-10 mr-2 sm:mr-3 flex items-center justify-center overflow-hidden rounded-lg"
+              >
+                <img
+                  src="@/assets/images/logo.png"
+                  alt="ChatGalaxy Logo"
+                  class="w-full h-full object-cover transition-transform duration-200 hover:scale-110"
+                  style="transform: scale(1.4); object-position: center; image-rendering: -webkit-optimize-contrast"
+                />
               </div>
-              <h1 class="text-xl font-bold text-gray-800">ChatGalaxy</h1>
+              <h1 class="text-lg sm:text-xl font-bold text-gray-800">ChatGalaxy</h1>
             </div>
 
             <!-- 用户信息和操作 -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 sm:space-x-4">
               <!-- 当前AI角色显示 -->
-              <div class="hidden sm:flex items-center text-sm text-gray-600">
+              <div class="hidden md:flex items-center text-sm text-gray-600">
                 <el-icon class="mr-1"><User /></el-icon>
                 <span>{{ currentRole?.name || '智能助手' }}</span>
               </div>
 
               <!-- 用户菜单 -->
               <el-dropdown @command="handleUserMenuCommand">
-                <div class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-3 py-2">
-                  <el-avatar :size="32" :src="currentUser?.avatar_url">
+                <div class="flex items-center cursor-pointer hover:bg-gray-50 rounded-lg px-2 sm:px-3 py-1 sm:py-2">
+                  <el-avatar :size="28" :src="currentUser?.avatar_url" class="sm:size-8">
                     <el-icon><User /></el-icon>
                   </el-avatar>
-                  <span class="ml-2 text-sm font-medium text-gray-700 hidden sm:block">
+                  <span class="ml-1 sm:ml-2 text-sm font-medium text-gray-700 hidden sm:block max-w-24 truncate">
                     {{ currentUser?.username || '访客用户' }}
                   </span>
-                  <el-icon class="ml-1 text-gray-400"><ArrowDown /></el-icon>
+                  <el-icon class="ml-1 text-gray-400 hidden sm:block"><ArrowDown /></el-icon>
                 </div>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -71,11 +78,11 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted, watch } from 'vue'
-  import { ElMessage, ElMessageBox } from 'element-plus'
-  import { ChatDotRound, User, ArrowDown, Clock, Setting, SwitchButton } from '@element-plus/icons-vue'
   import AuthForm from '@/components/AuthForm.vue'
   import ChatInterface from '@/components/ChatInterface.vue'
+  import { ArrowDown, Clock, Setting, SwitchButton, User } from '@element-plus/icons-vue'
+  import { ElMessage, ElMessageBox } from 'element-plus'
+  import { computed, onMounted, ref, watch } from 'vue'
   import { AuthService, type User as AuthUser } from '../services/auth'
   import { type AIRole } from '../services/chat'
 
@@ -300,6 +307,33 @@
     flex-direction: column;
   }
 
+  /* PNG Logo 留白优化样式 */
+  img[src$='.png'] {
+    /* 提升PNG清晰度 */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    image-rendering: optimizeQuality;
+  }
+
+  /* 导航栏 logo 特殊效果和留白优化 */
+  .chat-header img[alt='ChatGalaxy Logo'] {
+    object-fit: cover;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1)) contrast(1.05) brightness(1.02);
+    transition: all 0.2s ease;
+  }
+
+  .chat-header img[alt='ChatGalaxy Logo']:hover {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15)) drop-shadow(0 0 12px rgba(59, 130, 246, 0.2)) contrast(1.1)
+      brightness(1.05);
+  }
+
+  /* 导航栏logo容器优化 */
+  .chat-header .rounded-lg {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
   /* 响应式设计 */
   @media (max-width: 768px) {
     .chat-header .max-w-7xl {
@@ -309,6 +343,10 @@
 
     .chat-header h1 {
       font-size: 1.125rem;
+    }
+
+    .chat-header {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
   }
 

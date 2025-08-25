@@ -19,17 +19,20 @@ assets/
 ## 📸 截图规范
 
 ### 桌面端截图 (desktop/)
+
 - `home-page.png` - 主页面截图
 - `chat-interface.png` - 聊天界面截图
 - `auth-form.png` - 登录注册界面截图
 - `user-profile.png` - 用户资料页面截图
 
 ### 移动端截图 (mobile/)
+
 - `mobile-home.png` - 移动端主页
 - `mobile-chat.png` - 移动端聊天界面
 - `mobile-auth.png` - 移动端登录界面
 
 ### 功能特性截图 (features/)
+
 - `ai-roles.png` - AI 角色切换功能
 - `real-time-chat.png` - 实时聊天功能
 - `message-history.png` - 聊天记录功能
@@ -40,6 +43,7 @@ assets/
 以下是推荐在 README.md 中使用的项目徽章：
 
 ### 技术栈徽章
+
 ```markdown
 ![Vue.js](https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vue.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
@@ -52,12 +56,14 @@ assets/
 ```
 
 ### 部署状态徽章
+
 ```markdown
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
 ```
 
 ### 项目状态徽章
+
 ```markdown
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)
 ![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg?style=for-the-badge)
@@ -65,6 +71,7 @@ assets/
 ```
 
 ### 代码质量徽章
+
 ```markdown
 ![Code Style](https://img.shields.io/badge/Code_Style-Prettier-ff69b4.svg?style=for-the-badge)
 ![Linting](https://img.shields.io/badge/Linting-ESLint-4B32C3.svg?style=for-the-badge)
@@ -73,13 +80,15 @@ assets/
 ## 🎨 Logo 和图标规范
 
 ### Logo 文件 (logos/)
-- `logo.svg` - 主 Logo（矢量格式）
+
+- `logo.png` - 主 Logo（矢量格式）
 - `logo.png` - 主 Logo（PNG 格式，1024x1024）
 - `logo-light.svg` - 浅色主题 Logo
 - `logo-dark.svg` - 深色主题 Logo
 - `favicon.ico` - 网站图标
 
 ### 图标文件 (icons/)
+
 - `app-icon-192.png` - PWA 应用图标 (192x192)
 - `app-icon-512.png` - PWA 应用图标 (512x512)
 - `apple-touch-icon.png` - iOS 应用图标 (180x180)
@@ -97,10 +106,12 @@ assets/
 ## 📸 项目截图
 
 ### 桌面端
+
 ![主页面](./assets/screenshots/desktop/home-page.png)
 ![聊天界面](./assets/screenshots/desktop/chat-interface.png)
 
 ### 移动端
+
 <div align="center">
   <img src="./assets/screenshots/mobile/mobile-home.png" width="300" alt="移动端主页">
   <img src="./assets/screenshots/mobile/mobile-chat.png" width="300" alt="移动端聊天">

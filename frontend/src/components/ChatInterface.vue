@@ -1,42 +1,53 @@
 <template>
-  <div class="chat-interface h-full flex flex-col bg-gray-50">
+  <div class="chat-interface h-screen flex flex-col bg-gray-50">
     <!-- 聊天头部 -->
-    <div class="chat-header bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <el-avatar :size="40" :src="currentRole?.avatar_url" class="bg-primary-500">
+    <div
+      class="chat-header bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between flex-shrink-0"
+    >
+      <div class="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+        <el-avatar :size="32" :src="currentRole?.avatar_url" class="bg-primary-500 flex-shrink-0">
           <el-icon><User /></el-icon>
         </el-avatar>
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800">{{ currentRole?.name }}</h3>
-          <p class="text-sm text-gray-500">{{ currentRole?.description }}</p>
+        <div class="min-w-0 flex-1">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">{{ currentRole?.name }}</h3>
+          <p class="text-xs sm:text-sm text-gray-500 truncate">{{ currentRole?.description }}</p>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
-        <el-button type="primary" @click="showRoleSelector = true">
+      <div class="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+        <el-button type="primary" size="small" @click="showRoleSelector = true" class="hidden sm:inline-flex">
           <el-icon><Switch /></el-icon>
           切换角色
         </el-button>
-        <el-button @click="clearChat">
+        <el-button type="primary" size="small" @click="showRoleSelector = true" class="sm:hidden">
+          <el-icon><Switch /></el-icon>
+        </el-button>
+        <el-button size="small" @click="clearChat" class="hidden sm:inline-flex">
           <el-icon><Delete /></el-icon>
           清空对话
+        </el-button>
+        <el-button size="small" @click="clearChat" class="sm:hidden">
+          <el-icon><Delete /></el-icon>
         </el-button>
       </div>
     </div>
 
     <!-- 消息列表 -->
-    <div class="chat-messages flex-1 overflow-y-auto px-6 py-4" ref="messagesContainer">
-      <div v-if="messages.length === 0" class="text-center text-gray-500 mt-20">
-        <el-icon size="48" class="mb-4"><ChatDotRound /></el-icon>
-        <p class="text-lg">开始与 {{ currentRole?.name }} 对话吧！</p>
-        <p class="text-sm mt-2">{{ currentRole?.system_prompt }}</p>
+    <div class="chat-messages flex-1 overflow-y-auto px-4 sm:px-6 py-4 min-h-0" ref="messagesContainer">
+      <div
+        v-if="messages.length === 0"
+        class="h-full flex flex-col items-center justify-center text-center text-gray-500 px-4"
+      >
+        <el-icon size="48" class="mb-4 text-gray-400"><ChatDotRound /></el-icon>
+        <p class="text-lg sm:text-xl font-medium mb-2">开始与 {{ currentRole?.name }} 对话吧！</p>
+        <p class="text-sm text-gray-400 max-w-md">{{ currentRole?.system_prompt }}</p>
       </div>
 
-      <div v-for="message in messages" :key="message.id" class="message-item mb-6">
+      <div v-for="message in messages" :key="message.id" class="message-item mb-4 sm:mb-6">
         <!-- 用户消息 -->
         <div v-if="message.message_type === MessageType.USER" class="flex justify-end">
-          <div class="max-w-2xl">
-            <div class="bg-primary-500 text-white rounded-lg px-4 py-3 shadow-sm">
-              <p class="whitespace-pre-wrap">{{ message.content }}</p>
+          <div class="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl">
+            <div class="bg-primary-500 text-white rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+              <p class="whitespace-pre-wrap text-sm sm:text-base">{{ message.content }}</p>
             </div>
             <div class="text-xs text-gray-500 mt-1 text-right">
               {{ formatTime(message.created_at) }}
@@ -46,14 +57,14 @@
 
         <!-- AI消息 -->
         <div v-else class="flex justify-start">
-          <div class="max-w-2xl">
-            <div class="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
+          <div class="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl">
+            <div class="bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
               <div v-if="message.is_streaming" class="flex items-center space-x-2 text-gray-500">
                 <el-icon class="animate-spin"><Loading /></el-icon>
-                <span>AI正在思考中...</span>
+                <span class="text-sm">AI正在思考中...</span>
               </div>
               <div v-else>
-                <p class="whitespace-pre-wrap text-gray-800">{{ message.content }}</p>
+                <p class="whitespace-pre-wrap text-gray-800 text-sm sm:text-base">{{ message.content }}</p>
               </div>
             </div>
             <div class="text-xs text-gray-500 mt-1">
@@ -64,11 +75,11 @@
       </div>
 
       <!-- 流式消息显示 -->
-      <div v-if="streamingMessage" class="message-item mb-6">
+      <div v-if="streamingMessage" class="message-item mb-4 sm:mb-6">
         <div class="flex justify-start">
-          <div class="max-w-2xl">
-            <div class="bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm">
-              <p class="whitespace-pre-wrap text-gray-800">{{ streamingMessage }}</p>
+          <div class="max-w-xs sm:max-w-md md:max-w-lg lg:max-w-2xl">
+            <div class="bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+              <p class="whitespace-pre-wrap text-gray-800 text-sm sm:text-base">{{ streamingMessage }}</p>
               <div class="flex items-center space-x-2 text-gray-500 mt-2">
                 <el-icon class="animate-pulse"><Loading /></el-icon>
                 <span class="text-xs">正在生成回复...</span>
@@ -80,19 +91,20 @@
     </div>
 
     <!-- 输入区域 -->
-    <div class="chat-input bg-white border-t border-gray-200 px-6 py-4">
+    <div class="chat-input bg-white border-t border-gray-200 px-4 sm:px-6 py-4 flex-shrink-0 sticky bottom-0">
       <div class="flex items-end space-x-3">
         <div class="flex-1">
           <el-input
             v-model="inputMessage"
             type="textarea"
             :rows="1"
-            :autosize="{ minRows: 1, maxRows: 4 }"
-            placeholder="输入消息..."
+            :autosize="{ minRows: 1, maxRows: 3 }"
+            placeholder="输入消息...按Enter发送，Shift+Enter换行"
             @keydown.enter.exact="handleSendMessage"
             @keydown.enter.shift.exact.prevent="inputMessage += '\n'"
             :disabled="isLoading"
             class="chat-textarea"
+            size="large"
           />
         </div>
         <el-button
@@ -101,32 +113,34 @@
           :loading="isLoading"
           :disabled="!inputMessage.trim()"
           size="large"
+          class="flex-shrink-0 h-12"
         >
           <el-icon><Promotion /></el-icon>
+          <span class="ml-1 hidden sm:inline">发送</span>
         </el-button>
       </div>
     </div>
 
     <!-- 角色选择器 -->
-    <el-dialog v-model="showRoleSelector" title="选择AI角色" width="600px">
-      <div class="grid grid-cols-2 gap-4">
+    <el-dialog v-model="showRoleSelector" title="选择AI角色" :width="dialogWidth">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div
           v-for="role in availableRoles"
           :key="role.id"
           @click="selectRole(role)"
-          class="role-card p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-primary-500 hover:shadow-md transition-all"
+          class="role-card p-3 sm:p-4 border border-gray-200 rounded-lg cursor-pointer hover:border-primary-500 hover:shadow-md transition-all"
           :class="{ 'border-primary-500 bg-primary-50': role.id === currentRole?.id }"
         >
-          <div class="flex items-center space-x-3 mb-3">
-            <el-avatar :size="40" :src="role.avatar_url" class="bg-primary-500">
+          <div class="flex items-center space-x-2 sm:space-x-3 mb-2 sm:mb-3">
+            <el-avatar :size="32" :src="role.avatar_url" class="bg-primary-500 flex-shrink-0">
               <el-icon><User /></el-icon>
             </el-avatar>
-            <div>
-              <h4 class="font-semibold text-gray-800">{{ role.name }}</h4>
-              <p class="text-sm text-gray-500">{{ role.description }}</p>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-semibold text-gray-800 text-sm sm:text-base truncate">{{ role.name }}</h4>
+              <p class="text-xs sm:text-sm text-gray-500 truncate">{{ role.description }}</p>
             </div>
           </div>
-          <p class="text-xs text-gray-600">{{ role.system_prompt }}</p>
+          <p class="text-xs text-gray-600 line-clamp-2">{{ role.system_prompt }}</p>
         </div>
       </div>
     </el-dialog>
@@ -134,17 +148,17 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
+  import { ChatDotRound, Delete, Loading, Promotion, Switch, User } from '@element-plus/icons-vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
-  import { User, Delete, Switch, ChatDotRound, Loading, Promotion } from '@element-plus/icons-vue'
+  import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
   import {
-    ChatService,
-    type Message,
     type AIRole,
+    ChatService,
     type ChatSession,
+    type Message,
+    MessageType,
     type WebSocketMessage,
     WebSocketStatus,
-    MessageType,
   } from '../services/chat'
 
   // 组件属性定义
@@ -176,6 +190,12 @@
   const currentSession = ref<ChatSession | null>(null)
   const wsStatus = ref<WebSocketStatus>(WebSocketStatus.DISCONNECTED)
   const streamingMessage = ref<string>('')
+
+  // 计算属性
+  const dialogWidth = computed(() => {
+    if (typeof window === 'undefined') return '90%'
+    return window.innerWidth < 640 ? '95%' : window.innerWidth < 1024 ? '80%' : '600px'
+  })
 
   /**
    * 发送消息处理函数
@@ -422,10 +442,20 @@
 <style scoped>
   .chat-interface {
     height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
   }
 
   .chat-messages {
     scroll-behavior: smooth;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .chat-input {
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    backdrop-filter: blur(10px);
   }
 
   .message-item {
@@ -454,6 +484,13 @@
   .chat-textarea :deep(.el-textarea__inner) {
     resize: none;
     border-radius: 8px;
+    border: 1px solid #d1d5db;
+    transition: border-color 0.3s ease;
+  }
+
+  .chat-textarea :deep(.el-textarea__inner):focus {
+    border-color: #1677ff;
+    box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.1);
   }
 
   .animate-pulse {
@@ -467,6 +504,22 @@
     }
     50% {
       opacity: 0.5;
+    }
+  }
+
+  /* 移动端优化 */
+  @media (max-width: 640px) {
+    .chat-interface {
+      height: 100vh;
+      height: 100dvh; /* 动态视口高度 */
+    }
+
+    .chat-input {
+      padding: 12px 16px;
+    }
+
+    .chat-messages {
+      padding: 12px 16px;
     }
   }
 </style>

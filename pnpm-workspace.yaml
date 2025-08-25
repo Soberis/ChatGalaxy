@@ -1,0 +1,11 @@
+# ChatGalaxy pnpm工作区配置
+# 定义项目中的子包和工作区
+
+packages:
+  # 前端Vue项目
+  - 'frontend'
+
+  # 如果将来需要添加其他前端包（如文档、组件库等），可以在这里添加
+  # - 'docs'
+  # - 'shared'
+  # - 'packages/*'
